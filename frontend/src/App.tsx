@@ -8,6 +8,7 @@ import { EmployeeFormPage } from './pages/admin/EmployeeFormPage'
 import { EmployeeDetailPage } from './pages/admin/EmployeeDetailPage'
 import { DepartmentsPage } from './pages/admin/DepartmentsPage'
 import { AttendanceMonitoringPage } from './pages/admin/AttendanceMonitoringPage'
+import { SettingsPage } from './pages/admin/SettingsPage'
 import { ProfilePage } from './pages/portal/ProfilePage'
 import { AttendancePage } from './pages/portal/AttendancePage'
 
@@ -77,6 +78,14 @@ export default function App() {
           element={
             <ProtectedRoute role="Admin">
               <AttendanceMonitoringPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute role="Admin">
+              <SettingsPage />
             </ProtectedRoute>
           }
         />

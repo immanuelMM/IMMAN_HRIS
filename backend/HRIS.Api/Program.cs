@@ -9,10 +9,14 @@ QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Most container platforms inject PORT and expect the app to bind to it;
-// default to 8080 (matches the Dockerfile) for platforms that don't.
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://+:{port}");
+// Container platforms commonly inject PORT and expect the app to bind to it.
+// Only override the URL when it's actually set, so local dev (`dotnet run --urls ...`)
+// and launchSettings.json keep working as normal.
+var containerPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(containerPort))
+{
+    builder.WebHost.UseUrls($"http://+:{containerPort}");
+}
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

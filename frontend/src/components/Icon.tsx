@@ -14,6 +14,9 @@ export type IconName =
   | 'graduation-cap'
   | 'calendar'
   | 'key'
+  | 'settings'
+  | 'download'
+  | 'upload'
 
 const paths: Record<IconName, ReactNode> = {
   dashboard: (
@@ -110,6 +113,30 @@ const paths: Record<IconName, ReactNode> = {
       <path d="M11 12l8-8" />
       <path d="M15 8l3 3" />
       <path d="M18 5l3 3" />
+    </>
+  ),
+  settings: (
+    <>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <circle cx="9" cy="6" r="2.2" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <circle cx="16" cy="12" r="2.2" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+      <circle cx="10" cy="18" r="2.2" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 3v12" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M4 20h16" />
+    </>
+  ),
+  upload: (
+    <>
+      <path d="M12 20V8" />
+      <path d="M7 13l5-5 5 5" />
+      <path d="M4 20h16" />
     </>
   ),
 }

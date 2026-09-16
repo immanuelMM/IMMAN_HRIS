@@ -961,6 +961,7 @@ input, select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.45rem;
   border: 1px solid transparent;
   border-radius: 8px;
   padding: 0.55rem 1rem;
@@ -969,6 +970,10 @@ input, select {
   font-size: 0.92rem;
   text-decoration: none;
   transition: filter 0.15s ease;
+}
+
+.hidden-file-input {
+  display: none;
 }
 
 .btn:disabled {
