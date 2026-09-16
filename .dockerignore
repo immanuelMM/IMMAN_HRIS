@@ -1,0 +1,12 @@
+**/node_modules
+**/bin
+**/obj
+**/dist
+frontend/dist
+backend/HRIS.Api/bin
+backend/HRIS.Api/obj
+backend/HRIS.Api/*.db
+backend/HRIS.Api/*.db-shm
+backend/HRIS.Api/*.db-wal
+.git
+.gitignore
