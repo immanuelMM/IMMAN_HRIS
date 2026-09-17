@@ -1497,3 +1497,43 @@ table a:hover {
   text-align: center;
 }
 
+/* Resume PDF export (browser print-to-PDF, so the file is guaranteed to match
+   the on-screen resume exactly — no separate PDF layout to keep in sync). */
+.resume-toolbar {
+  max-width: 820px;
+  margin: 0 auto 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .resume-paper,
+  .resume-paper * {
+    visibility: visible;
+  }
+
+  .resume-paper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+    border: none;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+

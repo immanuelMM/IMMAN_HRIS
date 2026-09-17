@@ -59,6 +59,13 @@ export function ProfilePage() {
     }
   }
 
+  function handleDownloadPdf() {
+    const previousTitle = document.title
+    document.title = profile ? `${profile.fullName} - Resume` : 'Resume'
+    window.print()
+    document.title = previousTitle
+  }
+
   if (loading) {
     return (
       <PortalLayout>
@@ -79,13 +86,18 @@ export function ProfilePage() {
 
   return (
     <PortalLayout>
+      <div className="no-print resume-toolbar">
+        <button type="button" className="btn btn-primary" onClick={handleDownloadPdf}>
+          <Icon name="download" size={16} /> Download PDF
+        </button>
+      </div>
       <div className="resume-paper">
         <div className="resume-header">
           <div className="avatar-upload-wrap">
             <Avatar photoUrl={`/me/photo?v=${photoVersion}`} hasPhoto={profile.hasPhoto} name={profile.fullName} />
             <button
               type="button"
-              className="avatar-upload-btn"
+              className="avatar-upload-btn no-print"
               onClick={handleChoosePhoto}
               disabled={photoBusy}
               title="Change photo"
@@ -107,13 +119,18 @@ export function ProfilePage() {
               {[currentRole, profile.currentDepartmentName].filter(Boolean).join(' — ') || 'Employee'}
             </p>
             {profile.hasPhoto && (
-              <button type="button" className="avatar-remove-link" onClick={handleRemovePhoto} disabled={photoBusy}>
+              <button
+                type="button"
+                className="avatar-remove-link no-print"
+                onClick={handleRemovePhoto}
+                disabled={photoBusy}
+              >
                 Remove photo
               </button>
             )}
           </div>
         </div>
-        {photoError && <p className="form-error photo-error">{photoError}</p>}
+        {photoError && <p className="form-error photo-error no-print">{photoError}</p>}
 
         <div className="resume-contact-row">
           <span className="resume-contact-item">
