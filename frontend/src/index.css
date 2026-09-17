@@ -451,6 +451,62 @@ input, select {
   color: #ffffff;
 }
 
+.resume-header-main {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.clock-shortcut-btn {
+  margin-left: auto;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--accent-teal);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  line-height: 1.1;
+  text-decoration: none;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clock-shortcut-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.5);
+}
+
+.clock-shortcut-btn.attention {
+  animation: clock-shortcut-pulse 2s ease-in-out infinite;
+}
+
+@keyframes clock-shortcut-pulse {
+  0%, 100% {
+    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+  }
+  50% {
+    box-shadow: 0 6px 22px rgba(20, 184, 166, 0.75);
+  }
+}
+
+@media (max-width: 480px) {
+  .clock-shortcut-btn {
+    width: 68px;
+    height: 68px;
+    font-size: 0.68rem;
+  }
+}
+
 .avatar-circle {
   width: 72px;
   height: 72px;

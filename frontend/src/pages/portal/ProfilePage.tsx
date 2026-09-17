@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { PortalLayout } from '../../components/PortalLayout'
 import { Icon } from '../../components/Icon'
 import { Avatar } from '../../components/Avatar'
-import { deleteMyPhoto, getProfile, uploadMyPhoto } from '../../api/attendance'
-import type { Profile } from '../../api/types'
+import { deleteMyPhoto, getAttendance, getProfile, uploadMyPhoto } from '../../api/attendance'
+import type { AttendanceRecord, Profile } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
+import { todayLocalDateString } from '../../utils/dates'
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -17,8 +20,11 @@ export function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    getProfile()
-      .then(setProfile)
+    Promise.all([getProfile(), getAttendance()])
+      .then(([profileData, attendanceData]) => {
+        setProfile(profileData)
+        setAttendance(attendanceData)
+      })
       .catch((err) => setError(extractErrorMessage(err, 'Failed to load profile.')))
       .finally(() => setLoading(false))
   }, [])
@@ -84,6 +90,13 @@ export function ProfilePage() {
 
   const currentRole = profile.departmentHistories.find((d) => !d.endDate)?.position
 
+  const today = todayLocalDateString()
+  const todayRecord = attendance.find((r) => r.date === today)
+  const canClockIn = !todayRecord
+  const canClockOut = Boolean(todayRecord && todayRecord.timeIn && !todayRecord.timeOut)
+  const clockLabel = canClockIn ? 'Clock In' : canClockOut ? 'Clock Out' : 'Attendance'
+  const needsAttention = canClockIn || canClockOut
+
   return (
     <PortalLayout>
       <div className="no-print resume-toolbar">
@@ -93,42 +106,51 @@ export function ProfilePage() {
       </div>
       <div className="resume-paper">
         <div className="resume-header">
-          <div className="avatar-upload-wrap">
-            <Avatar photoUrl={`/me/photo?v=${photoVersion}`} hasPhoto={profile.hasPhoto} name={profile.fullName} />
-            <button
-              type="button"
-              className="avatar-upload-btn no-print"
-              onClick={handleChoosePhoto}
-              disabled={photoBusy}
-              title="Change photo"
-              aria-label="Change photo"
-            >
-              <Icon name="camera" size={14} />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden-file-input"
-              onChange={handlePhotoSelected}
-            />
-          </div>
-          <div className="resume-heading">
-            <h1 className="resume-title">{profile.fullName}</h1>
-            <p className="resume-subtitle">
-              {[currentRole, profile.currentDepartmentName].filter(Boolean).join(' — ') || 'Employee'}
-            </p>
-            {profile.hasPhoto && (
+          <div className="resume-header-main">
+            <div className="avatar-upload-wrap">
+              <Avatar photoUrl={`/me/photo?v=${photoVersion}`} hasPhoto={profile.hasPhoto} name={profile.fullName} />
               <button
                 type="button"
-                className="avatar-remove-link no-print"
-                onClick={handleRemovePhoto}
+                className="avatar-upload-btn no-print"
+                onClick={handleChoosePhoto}
                 disabled={photoBusy}
+                title="Change photo"
+                aria-label="Change photo"
               >
-                Remove photo
+                <Icon name="camera" size={14} />
               </button>
-            )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden-file-input"
+                onChange={handlePhotoSelected}
+              />
+            </div>
+            <div className="resume-heading">
+              <h1 className="resume-title">{profile.fullName}</h1>
+              <p className="resume-subtitle">
+                {[currentRole, profile.currentDepartmentName].filter(Boolean).join(' — ') || 'Employee'}
+              </p>
+              {profile.hasPhoto && (
+                <button
+                  type="button"
+                  className="avatar-remove-link no-print"
+                  onClick={handleRemovePhoto}
+                  disabled={photoBusy}
+                >
+                  Remove photo
+                </button>
+              )}
+            </div>
           </div>
+          <Link
+            to="/portal/attendance"
+            className={`clock-shortcut-btn no-print ${needsAttention ? 'attention' : ''}`}
+          >
+            <Icon name="clock" size={20} />
+            <span>{clockLabel}</span>
+          </Link>
         </div>
         {photoError && <p className="form-error photo-error no-print">{photoError}</p>}
 
