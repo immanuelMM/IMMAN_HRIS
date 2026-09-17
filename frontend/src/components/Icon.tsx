@@ -20,6 +20,8 @@ export type IconName =
   | 'camera'
   | 'qr-code'
   | 'id-card'
+  | 'check-circle'
+  | 'alert-circle'
 
 const paths: Record<IconName, ReactNode> = {
   dashboard: (
@@ -168,6 +170,19 @@ const paths: Record<IconName, ReactNode> = {
       <path d="M4.7 16c.5-1.7 1.9-2.6 3.3-2.6s2.8.9 3.3 2.6" />
       <line x1="14.5" y1="9.5" x2="18.5" y2="9.5" />
       <line x1="14.5" y1="12.5" x2="18.5" y2="12.5" />
+    </>
+  ),
+  'check-circle': (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12.5l2.5 2.5 5.5-5.5" />
+    </>
+  ),
+  'alert-circle': (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <line x1="12" y1="8" x2="12" y2="13" />
+      <line x1="12" y1="16" x2="12" y2="16.01" />
     </>
   ),
 }

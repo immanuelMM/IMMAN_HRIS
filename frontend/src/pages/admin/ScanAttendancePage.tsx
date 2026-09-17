@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { AdminLayout } from '../../components/AdminLayout'
+import { Avatar } from '../../components/Avatar'
 import { Icon } from '../../components/Icon'
 import { scanAttendanceQr } from '../../api/adminAttendance'
 import { extractErrorMessage } from '../../api/client'
@@ -20,6 +21,17 @@ export function ScanAttendancePage() {
 
   const processingRef = useRef(false)
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    // Granting the camera permission prompt does not count as a user gesture
+    // for the Web Audio API, so a scan detected before any tap on the page
+    // would otherwise play silently. Unlock audio on the first tap anywhere.
+    function unlock() {
+      primeAudio()
+    }
+    document.addEventListener('pointerdown', unlock)
+    return () => document.removeEventListener('pointerdown', unlock)
+  }, [])
 
   useEffect(() => {
     const qrCode = new Html5Qrcode(SCANNER_ELEMENT_ID)
@@ -71,18 +83,21 @@ export function ScanAttendancePage() {
     }
   }, [])
 
-  async function handleDecoded(token: string) {
-    if (processingRef.current) return
-    processingRef.current = true
+  function scheduleAutoClear() {
     if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
-
-    await submitToken(token)
-
     clearTimerRef.current = setTimeout(() => {
       setResult(null)
       setScanError(null)
       processingRef.current = false
     }, RESULT_DISPLAY_MS)
+  }
+
+  async function handleDecoded(token: string) {
+    if (processingRef.current) return
+    processingRef.current = true
+
+    await submitToken(token)
+    scheduleAutoClear()
   }
 
   async function submitToken(token: string) {
@@ -106,7 +121,15 @@ export function ScanAttendancePage() {
     const token = manualToken.trim()
     setManualToken('')
     await submitToken(token)
+    scheduleAutoClear()
     setManualBusy(false)
+  }
+
+  function dismissResult() {
+    if (clearTimerRef.current) clearTimeout(clearTimerRef.current)
+    setResult(null)
+    setScanError(null)
+    processingRef.current = false
   }
 
   return (
@@ -125,28 +148,6 @@ export function ScanAttendancePage() {
 
         {cameraError && <p className="form-error">{cameraError}</p>}
 
-        {result && (
-          <div className="scan-status-card scan-status-success">
-            <Icon name="clock" size={28} />
-            <div className="scan-status-text">
-              <h3>{result.employeeName}</h3>
-              <p>
-                {result.departmentName ?? 'No department'} — {result.message}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {scanError && (
-          <div className="scan-status-card scan-status-error">
-            <Icon name="qr-code" size={28} />
-            <div className="scan-status-text">
-              <h3>Scan Rejected</h3>
-              <p>{scanError}</p>
-            </div>
-          </div>
-        )}
-
         {!result && !scanError && <p className="scan-idle-hint">Waiting for a QR code…</p>}
 
         <form className="form-grid" onSubmit={handleManualSubmit} style={{ width: '100%' }}>
@@ -163,6 +164,37 @@ export function ScanAttendancePage() {
           </button>
         </form>
       </div>
+
+      {result && (
+        <div className="scan-result-overlay" onClick={dismissResult}>
+          <div className="scan-result-modal scan-result-success" onClick={(e) => e.stopPropagation()}>
+            <div className="scan-result-icon">
+              <Icon name="check-circle" size={52} />
+            </div>
+            <Avatar
+              photoUrl={`/employees/${result.employeeId}/photo`}
+              hasPhoto={result.hasPhoto}
+              name={result.employeeName}
+              className="scan-result-avatar"
+            />
+            <h2 className="scan-result-name">{result.employeeName}</h2>
+            <p className="scan-result-dept">{result.departmentName ?? 'No department'}</p>
+            <p className="scan-result-message">{result.message}</p>
+          </div>
+        </div>
+      )}
+
+      {scanError && (
+        <div className="scan-result-overlay" onClick={dismissResult}>
+          <div className="scan-result-modal scan-result-error" onClick={(e) => e.stopPropagation()}>
+            <div className="scan-result-icon">
+              <Icon name="alert-circle" size={52} />
+            </div>
+            <h2 className="scan-result-name">Scan Rejected</h2>
+            <p className="scan-result-message">{scanError}</p>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

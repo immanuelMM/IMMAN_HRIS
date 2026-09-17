@@ -1854,41 +1854,111 @@ table a:hover {
   border-radius: var(--radius);
 }
 
-.scan-status-card {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-}
-
-.scan-status-card.scan-status-success {
-  border-color: var(--accent-teal);
-  background: rgba(13, 148, 136, 0.08);
-}
-
-.scan-status-card.scan-status-error {
-  border-color: #dc2626;
-  background: rgba(220, 38, 38, 0.08);
-}
-
-.scan-status-text h3 {
-  margin: 0 0 0.2rem;
-  font-size: 1rem;
-}
-
-.scan-status-text p {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
 .scan-idle-hint {
   color: var(--color-text-muted);
   font-size: 0.88rem;
   text-align: center;
+}
+
+/* Scan result notification modal */
+.scan-result-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 200;
+  animation: scan-overlay-fade-in 0.18s ease;
+}
+
+@keyframes scan-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scan-result-modal {
+  background: var(--color-surface);
+  border-radius: 20px;
+  padding: 2rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.4);
+  border: 3px solid transparent;
+  animation: scan-modal-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scan-modal-pop {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scan-result-modal.scan-result-success {
+  border-color: var(--accent-teal);
+}
+
+.scan-result-modal.scan-result-error {
+  border-color: #dc2626;
+}
+
+.scan-result-icon {
+  display: flex;
+  margin-bottom: 0.2rem;
+}
+
+.scan-result-success .scan-result-icon {
+  color: var(--accent-teal);
+}
+
+.scan-result-error .scan-result-icon {
+  color: #dc2626;
+}
+
+.scan-result-avatar {
+  width: 72px;
+  height: 72px;
+  font-size: 1.3rem;
+  margin: 0.3rem 0;
+}
+
+.scan-result-name {
+  margin: 0.15rem 0 0;
+  font-size: 1.25rem;
+}
+
+.scan-result-dept {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.scan-result-message {
+  margin: 0.35rem 0 0;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.scan-result-success .scan-result-message {
+  color: var(--accent-teal);
+}
+
+.scan-result-error .scan-result-message {
+  color: #dc2626;
 }
 
