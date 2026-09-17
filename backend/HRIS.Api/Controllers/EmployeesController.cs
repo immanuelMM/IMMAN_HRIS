@@ -16,12 +16,14 @@ public class EmployeesController : ControllerBase
     private readonly HrisDbContext _db;
     private readonly CredentialGenerator _credentials;
     private readonly CredentialHasher _hasher;
+    private readonly EmployeeQrService _qr;
 
-    public EmployeesController(HrisDbContext db, CredentialGenerator credentials, CredentialHasher hasher)
+    public EmployeesController(HrisDbContext db, CredentialGenerator credentials, CredentialHasher hasher, EmployeeQrService qr)
     {
         _db = db;
         _credentials = credentials;
         _hasher = hasher;
+        _qr = qr;
     }
 
     private IQueryable<Employee> EmployeeQuery() => _db.Employees
@@ -192,6 +194,14 @@ public class EmployeesController : ControllerBase
         await _db.SaveChangesAsync();
 
         return Ok(new RegeneratePinResponse(account.Username, pin));
+    }
+
+    [HttpGet("qr-tokens")]
+    public async Task<ActionResult<List<EmployeeQrTokenResponse>>> GetAllQrTokens()
+    {
+        var ids = await _db.Employees.Select(e => e.Id).ToListAsync();
+        var tokens = ids.Select(id => new EmployeeQrTokenResponse(id, _qr.GenerateToken(id))).ToList();
+        return Ok(tokens);
     }
 
     [HttpGet("{id:int}/photo")]

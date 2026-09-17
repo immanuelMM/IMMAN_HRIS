@@ -18,6 +18,8 @@ export type IconName =
   | 'download'
   | 'upload'
   | 'camera'
+  | 'qr-code'
+  | 'id-card'
 
 const paths: Record<IconName, ReactNode> = {
   dashboard: (
@@ -144,6 +146,28 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
       <circle cx="12" cy="14" r="3.5" />
+    </>
+  ),
+  'qr-code': (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <line x1="14" y1="14" x2="14" y2="14.01" />
+      <line x1="18" y1="14" x2="18" y2="14.01" />
+      <line x1="14" y1="18" x2="14" y2="18.01" />
+      <line x1="18" y1="18" x2="18" y2="18.01" />
+      <line x1="14" y1="21" x2="21" y2="21" />
+      <line x1="21" y1="14" x2="21" y2="21" />
+    </>
+  ),
+  'id-card': (
+    <>
+      <rect x="2.5" y="5" width="19" height="14" rx="2" />
+      <circle cx="8" cy="11" r="2.2" />
+      <path d="M4.7 16c.5-1.7 1.9-2.6 3.3-2.6s2.8.9 3.3 2.6" />
+      <line x1="14.5" y1="9.5" x2="18.5" y2="9.5" />
+      <line x1="14.5" y1="12.5" x2="18.5" y2="12.5" />
     </>
   ),
 }

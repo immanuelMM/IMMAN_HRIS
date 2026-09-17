@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { PortalLayout } from '../../components/PortalLayout'
 import { Icon } from '../../components/Icon'
 import { Avatar } from '../../components/Avatar'
+import { IdCardModal } from '../../components/IdCardModal'
 import { deleteMyPhoto, getAttendance, getProfile, uploadMyPhoto } from '../../api/attendance'
 import type { AttendanceRecord, Profile } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
@@ -18,6 +19,7 @@ export function ProfilePage() {
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showIdCard, setShowIdCard] = useState(false)
 
   useEffect(() => {
     Promise.all([getProfile(), getAttendance()])
@@ -238,8 +240,22 @@ export function ProfilePage() {
               </div>
             )}
           </section>
+
+          <section className="no-print">
+            <h2 className="resume-section-title">
+              <Icon name="id-card" size={15} /> Employee ID
+            </h2>
+            <p className="resume-empty">
+              Show your official ID card, with QR code, for admin attendance scanning.
+            </p>
+            <button type="button" className="btn btn-primary" onClick={() => setShowIdCard(true)}>
+              <Icon name="id-card" size={16} /> View My ID
+            </button>
+          </section>
         </div>
       </div>
+
+      {showIdCard && <IdCardModal profile={profile} onClose={() => setShowIdCard(false)} />}
     </PortalLayout>
   )
 }

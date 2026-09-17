@@ -3,6 +3,7 @@ import type {
   CreateEmployeeRequest,
   CreateEmployeeResponse,
   Employee,
+  EmployeeQrToken,
   RegeneratePinResponse,
   UpdateEmployeeRequest,
 } from './types'
@@ -47,4 +48,8 @@ export function uploadEmployeePhoto(id: number, file: File) {
 
 export function deleteEmployeePhoto(id: number) {
   return apiClient.delete(`/employees/${id}/photo`)
+}
+
+export function getAllEmployeeQrTokens() {
+  return apiClient.get<EmployeeQrToken[]>('/employees/qr-tokens').then((r) => r.data)
 }

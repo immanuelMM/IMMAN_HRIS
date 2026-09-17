@@ -1,8 +1,12 @@
 import { apiClient } from './client'
-import type { AttendanceRecord, Profile } from './types'
+import type { AttendanceRecord, EmployeeQrToken, Profile } from './types'
 
 export function getProfile() {
   return apiClient.get<Profile>('/me/profile').then((r) => r.data)
+}
+
+export function getMyQrToken() {
+  return apiClient.get<EmployeeQrToken>('/me/qr-token').then((r) => r.data)
 }
 
 export function getAttendance() {

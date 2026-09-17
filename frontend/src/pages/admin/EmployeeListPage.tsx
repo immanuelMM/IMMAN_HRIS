@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AdminLayout } from '../../components/AdminLayout'
 import { Avatar } from '../../components/Avatar'
+import { Icon } from '../../components/Icon'
 import { listEmployees } from '../../api/employees'
 import type { Employee } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
@@ -35,9 +36,14 @@ export function EmployeeListPage() {
     <AdminLayout navItems={ADMIN_NAV}>
       <div className="page-header">
         <h1>Employees</h1>
-        <Link to="/admin/employees/new" className="btn btn-primary">
-          + New Employee
-        </Link>
+        <div className="row-actions">
+          <Link to="/admin/employees/print-ids" className="btn btn-ghost">
+            <Icon name="id-card" size={16} /> Print All IDs
+          </Link>
+          <Link to="/admin/employees/new" className="btn btn-primary">
+            + New Employee
+          </Link>
+        </div>
       </div>
 
       <input

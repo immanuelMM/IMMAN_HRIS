@@ -171,3 +171,18 @@ export interface Profile {
   employmentHistories: EmploymentHistoryRecord[]
   departmentHistories: DepartmentHistoryRecord[]
 }
+
+export interface EmployeeQrToken {
+  employeeId: number
+  token: string
+}
+
+export interface ScanAttendanceResult {
+  employeeId: number
+  employeeName: string
+  departmentName: string | null
+  hasPhoto: boolean
+  action: 'time-in' | 'time-out'
+  time: string
+  message: string
+}

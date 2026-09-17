@@ -15,13 +15,22 @@ namespace HRIS.Api.Controllers;
 public class MeController : ControllerBase
 {
     private readonly HrisDbContext _db;
+    private readonly EmployeeQrService _qr;
 
-    public MeController(HrisDbContext db)
+    public MeController(HrisDbContext db, EmployeeQrService qr)
     {
         _db = db;
+        _qr = qr;
     }
 
     private int CurrentEmployeeId => int.Parse(User.FindFirstValue("employeeId")!);
+
+    [HttpGet("qr-token")]
+    public ActionResult<EmployeeQrTokenResponse> GetQrToken()
+    {
+        var token = _qr.GenerateToken(CurrentEmployeeId);
+        return Ok(new EmployeeQrTokenResponse(CurrentEmployeeId, token));
+    }
 
     [HttpGet("profile")]
     public async Task<ActionResult<ProfileResponse>> GetProfile()

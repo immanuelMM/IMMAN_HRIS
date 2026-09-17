@@ -54,6 +54,7 @@ builder.Services.AddDbContext<HrisDbContext>(options => options.UseNpgsql(connec
 builder.Services.AddScoped<CredentialGenerator>();
 builder.Services.AddSingleton<CredentialHasher>();
 builder.Services.AddSingleton<JwtTokenService>();
+builder.Services.AddSingleton<EmployeeQrService>();
 
 builder.Services.AddAuthentication(options =>
 {

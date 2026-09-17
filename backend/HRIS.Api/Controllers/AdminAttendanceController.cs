@@ -14,10 +14,66 @@ namespace HRIS.Api.Controllers;
 public class AdminAttendanceController : ControllerBase
 {
     private readonly HrisDbContext _db;
+    private readonly EmployeeQrService _qr;
 
-    public AdminAttendanceController(HrisDbContext db)
+    public AdminAttendanceController(HrisDbContext db, EmployeeQrService qr)
     {
         _db = db;
+        _qr = qr;
+    }
+
+    [HttpPost("scan")]
+    public async Task<ActionResult<ScanAttendanceResponse>> Scan(ScanAttendanceRequest request)
+    {
+        if (!_qr.TryValidate(request.Token, out var employeeId))
+        {
+            return BadRequest(new { message = "Invalid or unrecognized ID QR code." });
+        }
+
+        var employee = await _db.Employees
+            .Include(e => e.CurrentDepartment)
+            .FirstOrDefaultAsync(e => e.Id == employeeId);
+        if (employee is null)
+        {
+            return NotFound(new { message = "Employee not found." });
+        }
+
+        var today = PhilippineTime.Today;
+        var record = await _db.AttendanceRecords
+            .FirstOrDefaultAsync(a => a.EmployeeId == employeeId && a.Date == today);
+
+        string action;
+        DateTime time;
+
+        if (record is null)
+        {
+            time = PhilippineTime.Now;
+            record = new AttendanceRecord { EmployeeId = employeeId, Date = today, TimeIn = time };
+            _db.AttendanceRecords.Add(record);
+            action = "time-in";
+        }
+        else if (record.TimeIn is not null && record.TimeOut is null)
+        {
+            time = PhilippineTime.Now;
+            record.TimeOut = time;
+            action = "time-out";
+        }
+        else
+        {
+            return Conflict(new { message = $"{employee.FullName} has already completed attendance for today." });
+        }
+
+        await _db.SaveChangesAsync();
+
+        var label = action == "time-in" ? "Timed In" : "Timed Out";
+        return Ok(new ScanAttendanceResponse(
+            employee.Id,
+            employee.FullName,
+            employee.CurrentDepartment?.Name,
+            employee.PhotoData is not null,
+            action,
+            time,
+            $"{label} at {time:h:mm tt}"));
     }
 
     [HttpGet]

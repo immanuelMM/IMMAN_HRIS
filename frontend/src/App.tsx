@@ -6,8 +6,10 @@ import { DashboardPage } from './pages/admin/DashboardPage'
 import { EmployeeListPage } from './pages/admin/EmployeeListPage'
 import { EmployeeFormPage } from './pages/admin/EmployeeFormPage'
 import { EmployeeDetailPage } from './pages/admin/EmployeeDetailPage'
+import { PrintIdCardsPage } from './pages/admin/PrintIdCardsPage'
 import { DepartmentsPage } from './pages/admin/DepartmentsPage'
 import { AttendanceMonitoringPage } from './pages/admin/AttendanceMonitoringPage'
+import { ScanAttendancePage } from './pages/admin/ScanAttendancePage'
 import { SettingsPage } from './pages/admin/SettingsPage'
 import { ProfilePage } from './pages/portal/ProfilePage'
 import { AttendancePage } from './pages/portal/AttendancePage'
@@ -50,6 +52,14 @@ export default function App() {
           }
         />
         <Route
+          path="/admin/employees/print-ids"
+          element={
+            <ProtectedRoute role="Admin">
+              <PrintIdCardsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/employees/:id"
           element={
             <ProtectedRoute role="Admin">
@@ -78,6 +88,14 @@ export default function App() {
           element={
             <ProtectedRoute role="Admin">
               <AttendanceMonitoringPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/scan"
+          element={
+            <ProtectedRoute role="Admin">
+              <ScanAttendancePage />
             </ProtectedRoute>
           }
         />

@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { AdminAttendanceRecord, AttendanceMonitoringResponse } from './types'
+import type { AdminAttendanceRecord, AttendanceMonitoringResponse, ScanAttendanceResult } from './types'
 
 export interface AttendanceFilters {
   employeeId?: number
@@ -27,6 +27,10 @@ export function adjustAttendanceTime(id: number, field: 'timeIn' | 'timeOut', mi
   return apiClient
     .post<AdminAttendanceRecord>(`/admin/attendance/${id}/adjust`, { field, minutes })
     .then((r) => r.data)
+}
+
+export function scanAttendanceQr(token: string) {
+  return apiClient.post<ScanAttendanceResult>('/admin/attendance/scan', { token }).then((r) => r.data)
 }
 
 export async function downloadAttendanceReport(format: 'pdf' | 'excel', filters: AttendanceFilters) {

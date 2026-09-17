@@ -88,3 +88,19 @@ export function playEarlyOutSound() {
     { freq: 523.25, start: 0.15, duration: 0.3, gain: 0.15 },
   ])
 }
+
+/** Short bright beep — a QR scan was read and accepted. */
+export function playScanSuccessSound() {
+  playNotes([
+    { freq: 987.77, start: 0, duration: 0.12, gain: 0.2 },
+    { freq: 1318.51, start: 0.1, duration: 0.2, gain: 0.2 },
+  ])
+}
+
+/** Low buzzer — a QR scan was rejected or errored. */
+export function playScanErrorSound() {
+  playNotes([
+    { freq: 220, start: 0, duration: 0.22, type: 'sawtooth', gain: 0.18 },
+    { freq: 174.61, start: 0.2, duration: 0.28, type: 'sawtooth', gain: 0.18 },
+  ])
+}
