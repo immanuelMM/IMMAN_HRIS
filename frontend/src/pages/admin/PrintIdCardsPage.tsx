@@ -66,8 +66,8 @@ function IdPrintPair({ employee, token }: { employee: Employee; token?: string }
     <div className="id-print-pair">
       <div className="id-print-card">
         <div className="id-card-band">
-          <Icon name="id-card" size={16} />
-          <span>IMMAN HRIS</span>
+          <Icon name="building" size={16} />
+          <span>{employee.currentDepartmentName ?? 'IMMAN HRIS'}</span>
         </div>
         <div className="id-card-body">
           <Avatar
@@ -79,7 +79,6 @@ function IdPrintPair({ employee, token }: { employee: Employee; token?: string }
           <div className="id-card-identity">
             <div className="id-card-name">{employee.fullName}</div>
             <div className="id-card-role">{currentRole ?? 'Employee'}</div>
-            <div className="id-card-dept">{employee.currentDepartmentName ?? '—'}</div>
             <div className="id-card-contact">
               <span className="id-card-contact-line" title={employee.contactNumber}>
                 <Icon name="phone" size={11} /> {employee.contactNumber}

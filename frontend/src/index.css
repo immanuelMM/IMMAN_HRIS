@@ -1687,6 +1687,13 @@ table a:hover {
   flex-shrink: 0;
 }
 
+.id-card-band span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .id-card-band-alt {
   justify-content: center;
 }
@@ -1720,15 +1727,9 @@ table a:hover {
 
 .id-card-role {
   font-size: 0.82rem;
-  color: #47505c;
-  margin-top: 0.2rem;
-}
-
-.id-card-dept {
-  font-size: 0.78rem;
   color: var(--accent-teal);
   font-weight: 600;
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
 }
 
 .id-card-contact {

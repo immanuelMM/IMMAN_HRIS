@@ -35,8 +35,8 @@ export function IdCardModal({ profile, onClose }: { profile: Profile; onClose: (
             <div className={`id-card-flip ${flipped ? 'flipped' : ''}`}>
               <div className="id-card-face id-card-front">
                 <div className="id-card-band">
-                  <Icon name="id-card" size={16} />
-                  <span>IMMAN HRIS</span>
+                  <Icon name="building" size={16} />
+                  <span>{profile.currentDepartmentName ?? 'IMMAN HRIS'}</span>
                 </div>
                 <div className="id-card-body">
                   <Avatar
@@ -48,7 +48,6 @@ export function IdCardModal({ profile, onClose }: { profile: Profile; onClose: (
                   <div className="id-card-identity">
                     <div className="id-card-name">{profile.fullName}</div>
                     <div className="id-card-role">{currentRole ?? 'Employee'}</div>
-                    <div className="id-card-dept">{profile.currentDepartmentName ?? '—'}</div>
                     <div className="id-card-contact">
                       <span className="id-card-contact-line" title={profile.contactNumber}>
                         <Icon name="phone" size={11} /> {profile.contactNumber}
