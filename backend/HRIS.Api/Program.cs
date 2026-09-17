@@ -4,6 +4,7 @@ using HRIS.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
@@ -47,8 +48,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddDbContext<HrisDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+var connectionString = ResolvePostgresConnectionString(builder.Configuration);
+builder.Services.AddDbContext<HrisDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<CredentialGenerator>();
 builder.Services.AddSingleton<CredentialHasher>();
@@ -116,3 +117,40 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+// Render (and Heroku-style platforms) hand Postgres connection info as a single
+// "postgres://user:pass@host:port/db" URL via DATABASE_URL, but Npgsql wants a
+// key=value connection string. Support both, plus a local appsettings fallback.
+static string ResolvePostgresConnectionString(IConfiguration configuration)
+{
+    var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        if (databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+            || databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            var uri = new Uri(databaseUrl);
+            var userInfo = uri.UserInfo.Split(':', 2);
+
+            var builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = uri.Host,
+                Port = uri.Port > 0 ? uri.Port : 5432,
+                Database = uri.AbsolutePath.TrimStart('/'),
+                Username = Uri.UnescapeDataString(userInfo[0]),
+                Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : null,
+                SslMode = SslMode.Prefer,
+            };
+            return builder.ConnectionString;
+        }
+
+        // Already a plain Npgsql key=value connection string.
+        return databaseUrl;
+    }
+
+    return configuration.GetConnectionString("Default")
+        ?? throw new InvalidOperationException(
+            "No database connection string configured. Set the DATABASE_URL environment variable " +
+            "or ConnectionStrings:Default in appsettings.");
+}

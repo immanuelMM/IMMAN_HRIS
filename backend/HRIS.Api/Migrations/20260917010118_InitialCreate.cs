@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,10 +16,10 @@ namespace HRIS.Api.Migrations
                 name: "AdminAccounts",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Username = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,10 +30,10 @@ namespace HRIS.Api.Migrations
                 name: "Departments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -43,20 +44,20 @@ namespace HRIS.Api.Migrations
                 name: "Employees",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    MiddleName = table.Column<string>(type: "TEXT", nullable: true),
-                    LastName = table.Column<string>(type: "TEXT", nullable: false),
-                    Suffix = table.Column<string>(type: "TEXT", nullable: true),
-                    DateOfBirth = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    Gender = table.Column<string>(type: "TEXT", nullable: false),
-                    CivilStatus = table.Column<string>(type: "TEXT", nullable: false),
-                    Address = table.Column<string>(type: "TEXT", nullable: false),
-                    ContactNumber = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    HireDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    CurrentDepartmentId = table.Column<int>(type: "INTEGER", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    MiddleName = table.Column<string>(type: "text", nullable: true),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    Suffix = table.Column<string>(type: "text", nullable: true),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
+                    Gender = table.Column<string>(type: "text", nullable: false),
+                    CivilStatus = table.Column<string>(type: "text", nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false),
+                    ContactNumber = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    HireDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    CurrentDepartmentId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -73,12 +74,12 @@ namespace HRIS.Api.Migrations
                 name: "AttendanceRecords",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Date = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    TimeIn = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    TimeOut = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EmployeeId = table.Column<int>(type: "integer", nullable: false),
+                    Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    TimeIn = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    TimeOut = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -95,13 +96,13 @@ namespace HRIS.Api.Migrations
                 name: "DepartmentHistories",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    DepartmentId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Position = table.Column<string>(type: "TEXT", nullable: false),
-                    StartDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateOnly>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EmployeeId = table.Column<int>(type: "integer", nullable: false),
+                    DepartmentId = table.Column<int>(type: "integer", nullable: false),
+                    Position = table.Column<string>(type: "text", nullable: false),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -124,14 +125,14 @@ namespace HRIS.Api.Migrations
                 name: "EducationRecords",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Level = table.Column<string>(type: "TEXT", nullable: false),
-                    SchoolName = table.Column<string>(type: "TEXT", nullable: false),
-                    ProgramOrStrand = table.Column<string>(type: "TEXT", nullable: true),
-                    YearGraduated = table.Column<int>(type: "INTEGER", nullable: true),
-                    Honors = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EmployeeId = table.Column<int>(type: "integer", nullable: false),
+                    Level = table.Column<string>(type: "text", nullable: false),
+                    SchoolName = table.Column<string>(type: "text", nullable: false),
+                    ProgramOrStrand = table.Column<string>(type: "text", nullable: true),
+                    YearGraduated = table.Column<int>(type: "integer", nullable: true),
+                    Honors = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -148,11 +149,11 @@ namespace HRIS.Api.Migrations
                 name: "EmployeeAccounts",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Username = table.Column<string>(type: "TEXT", nullable: false),
-                    PinHash = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EmployeeId = table.Column<int>(type: "integer", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    PinHash = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -169,14 +170,14 @@ namespace HRIS.Api.Migrations
                 name: "EmploymentHistories",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    EmployeeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CompanyName = table.Column<string>(type: "TEXT", nullable: false),
-                    Position = table.Column<string>(type: "TEXT", nullable: false),
-                    StartDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    ReasonForLeaving = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EmployeeId = table.Column<int>(type: "integer", nullable: false),
+                    CompanyName = table.Column<string>(type: "text", nullable: false),
+                    Position = table.Column<string>(type: "text", nullable: false),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    ReasonForLeaving = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

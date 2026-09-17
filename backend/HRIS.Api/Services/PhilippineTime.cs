@@ -8,7 +8,11 @@ namespace HRIS.Api.Services;
 /// </summary>
 public static class PhilippineTime
 {
-    public static DateTime Now => DateTime.UtcNow.AddHours(8);
+    // Kind is set to Unspecified (a "naive" wall-clock value) rather than Utc:
+    // the value itself is already shifted to PHT, so tagging it Utc would be a
+    // lie, and it also matches how EF Core/Npgsql map plain DateTime columns
+    // ("timestamp without time zone") without extra provider-specific config.
+    public static DateTime Now => DateTime.SpecifyKind(DateTime.UtcNow.AddHours(8), DateTimeKind.Unspecified);
 
     public static DateOnly Today => DateOnly.FromDateTime(Now);
 }

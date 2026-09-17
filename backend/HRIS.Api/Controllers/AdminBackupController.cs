@@ -103,13 +103,15 @@ public class AdminBackupController : ControllerBase
         await using var transaction = await _db.Database.BeginTransactionAsync();
 
         // Wipe existing company data (in FK-safe order). Admin login accounts are left untouched.
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM AttendanceRecords");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM DepartmentHistories");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM EmploymentHistories");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM EducationRecords");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM EmployeeAccounts");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Employees");
-        await _db.Database.ExecuteSqlRawAsync("DELETE FROM Departments");
+        // Table names are double-quoted: Postgres folds unquoted identifiers to
+        // lowercase, but EF Core's migrations create case-preserved (quoted) names.
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"AttendanceRecords\"");
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"DepartmentHistories\"");
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"EmploymentHistories\"");
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"EducationRecords\"");
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"EmployeeAccounts\"");
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"Employees\"");
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"Departments\"");
 
         foreach (var d in backup.Departments)
         {

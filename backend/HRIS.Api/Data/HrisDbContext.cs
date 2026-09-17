@@ -73,6 +73,12 @@ public class HrisDbContext : DbContext
         modelBuilder.Entity<AttendanceRecord>()
             .HasIndex(a => new { a.EmployeeId, a.Date });
 
+        // TimeIn/TimeOut store Philippine wall-clock time (Kind=Unspecified) regardless
+        // of server region — map to "without time zone" so Npgsql doesn't require Kind=Utc
+        // and doesn't apply any timezone conversion of its own.
+        modelBuilder.Entity<AttendanceRecord>().Property(a => a.TimeIn).HasColumnType("timestamp without time zone");
+        modelBuilder.Entity<AttendanceRecord>().Property(a => a.TimeOut).HasColumnType("timestamp without time zone");
+
         modelBuilder.Entity<Employee>().Property(e => e.Gender).HasConversion<string>();
         modelBuilder.Entity<Employee>().Property(e => e.CivilStatus).HasConversion<string>();
         modelBuilder.Entity<EducationRecord>().Property(e => e.Level).HasConversion<string>();
