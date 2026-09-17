@@ -48,7 +48,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-var connectionString = ResolvePostgresConnectionString(builder.Configuration);
+var connectionString = ResolvePostgresConnectionString(builder.Configuration, builder.Environment);
 builder.Services.AddDbContext<HrisDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<CredentialGenerator>();
@@ -121,7 +121,7 @@ app.Run();
 // Render (and Heroku-style platforms) hand Postgres connection info as a single
 // "postgres://user:pass@host:port/db" URL via DATABASE_URL, but Npgsql wants a
 // key=value connection string. Support both, plus a local appsettings fallback.
-static string ResolvePostgresConnectionString(IConfiguration configuration)
+static string ResolvePostgresConnectionString(IConfiguration configuration, IHostEnvironment environment)
 {
     var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
@@ -147,6 +147,19 @@ static string ResolvePostgresConnectionString(IConfiguration configuration)
 
         // Already a plain Npgsql key=value connection string.
         return databaseUrl;
+    }
+
+    // Running in a container (PORT is set by the platform) with no DATABASE_URL means
+    // we're about to fall back to the local-dev default, which points at localhost and
+    // cannot possibly work there. Fail immediately with a clear message instead of
+    // letting Npgsql throw a cryptic "connection refused" against 127.0.0.1 later.
+    var isContainer = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT"));
+    if (isContainer || environment.IsProduction())
+    {
+        throw new InvalidOperationException(
+            "DATABASE_URL is not set. This app needs a PostgreSQL database — create one on your hosting " +
+            "platform (e.g. a Render PostgreSQL instance) and set the DATABASE_URL environment variable on " +
+            "this service to its connection string (Render calls this the 'Internal Database URL').");
     }
 
     return configuration.GetConnectionString("Default")
