@@ -1,0 +1,18 @@
+# Local development only: spins up a Postgres instance matching what the app
+# expects locally (see backend/HRIS.Api/appsettings.json ConnectionStrings:Default).
+# Run: docker compose up -d
+# The app itself still runs via `dotnet run` / `npm run dev`, not from this file.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hris
+    ports:
+      - "5432:5432"
+    volumes:
+      - hris-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  hris-postgres-data:
