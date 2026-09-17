@@ -146,7 +146,7 @@ public class AdminAttendanceController : ControllerBase
             return (start, end);
         }
 
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = PhilippineTime.Today;
         var weekStart = AttendanceCalculator.GetWeekStart(today);
         return (weekStart, AttendanceCalculator.GetWeekEnd(weekStart));
     }

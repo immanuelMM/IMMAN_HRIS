@@ -2,6 +2,7 @@ using System.Security.Claims;
 using HRIS.Api.Data;
 using HRIS.Api.DTOs;
 using HRIS.Api.Models;
+using HRIS.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -50,7 +51,7 @@ public class MeController : ControllerBase
     [HttpPost("time-in")]
     public async Task<ActionResult<AttendanceRecordDto>> TimeIn()
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = PhilippineTime.Today;
         var existing = await _db.AttendanceRecords
             .FirstOrDefaultAsync(a => a.EmployeeId == CurrentEmployeeId && a.Date == today);
 
@@ -63,7 +64,7 @@ public class MeController : ControllerBase
         {
             EmployeeId = CurrentEmployeeId,
             Date = today,
-            TimeIn = DateTime.Now,
+            TimeIn = PhilippineTime.Now,
         };
         _db.AttendanceRecords.Add(record);
         await _db.SaveChangesAsync();
@@ -74,7 +75,7 @@ public class MeController : ControllerBase
     [HttpPost("time-out")]
     public async Task<ActionResult<AttendanceRecordDto>> TimeOut()
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = PhilippineTime.Today;
         var record = await _db.AttendanceRecords
             .FirstOrDefaultAsync(a => a.EmployeeId == CurrentEmployeeId && a.Date == today);
 
@@ -88,7 +89,7 @@ public class MeController : ControllerBase
             return Conflict(new { message = "You have already timed out today." });
         }
 
-        record.TimeOut = DateTime.Now;
+        record.TimeOut = PhilippineTime.Now;
         await _db.SaveChangesAsync();
 
         return Ok(new AttendanceRecordDto(record.Id, record.Date, record.TimeIn, record.TimeOut));

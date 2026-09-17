@@ -27,7 +27,7 @@ public static class AttendanceReportGenerator
                 {
                     col.Item().Text("Attendance Report").FontSize(18).Bold();
                     col.Item().Text($"Period: {rangeStart:yyyy-MM-dd} to {rangeEnd:yyyy-MM-dd}");
-                    col.Item().Text($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm}").FontSize(9).FontColor(Colors.Grey.Medium);
+                    col.Item().Text($"Generated: {PhilippineTime.Now:yyyy-MM-dd HH:mm} (PHT)").FontSize(9).FontColor(Colors.Grey.Medium);
                 });
 
                 page.Content().PaddingVertical(10).Column(column =>
