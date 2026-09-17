@@ -10,6 +10,7 @@ public record ProfileResponse(
     string Address,
     DateOnly HireDate,
     string? CurrentDepartmentName,
+    bool HasPhoto,
     List<EducationRecordDto> EducationRecords,
     List<EmploymentHistoryDto> EmploymentHistories,
     List<DepartmentHistoryDto> DepartmentHistories);

@@ -36,6 +36,68 @@ public class MeController : ControllerBase
         return employee is null ? NotFound() : Ok(EmployeeMapper.ToProfile(employee));
     }
 
+    [HttpGet("photo")]
+    public async Task<IActionResult> GetPhoto()
+    {
+        var employee = await _db.Employees.FindAsync(CurrentEmployeeId);
+        if (employee?.PhotoData is null)
+        {
+            return NotFound();
+        }
+
+        return File(employee.PhotoData, employee.PhotoContentType ?? "application/octet-stream");
+    }
+
+    [HttpPost("photo")]
+    [RequestSizeLimit(5_000_000)]
+    public async Task<IActionResult> UploadPhoto(IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { message = "No file uploaded." });
+        }
+
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { message = "File must be an image." });
+        }
+
+        if (file.Length > 5_000_000)
+        {
+            return BadRequest(new { message = "Image must be smaller than 5MB." });
+        }
+
+        var employee = await _db.Employees.FindAsync(CurrentEmployeeId);
+        if (employee is null)
+        {
+            return NotFound();
+        }
+
+        using var stream = new MemoryStream();
+        await file.CopyToAsync(stream);
+        employee.PhotoData = stream.ToArray();
+        employee.PhotoContentType = file.ContentType;
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("photo")]
+    public async Task<IActionResult> DeletePhoto()
+    {
+        var employee = await _db.Employees.FindAsync(CurrentEmployeeId);
+        if (employee is null)
+        {
+            return NotFound();
+        }
+
+        employee.PhotoData = null;
+        employee.PhotoContentType = null;
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpGet("attendance")]
     public async Task<ActionResult<List<AttendanceRecordDto>>> GetAttendance()
     {

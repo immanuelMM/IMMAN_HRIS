@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PortalLayout } from '../../components/PortalLayout'
 import { Icon } from '../../components/Icon'
-import { getProfile } from '../../api/attendance'
+import { Avatar } from '../../components/Avatar'
+import { deleteMyPhoto, getProfile, uploadMyPhoto } from '../../api/attendance'
 import type { Profile } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
-import { getInitials } from '../../utils/initials'
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [photoVersion, setPhotoVersion] = useState(0)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getProfile()
@@ -17,6 +22,42 @@ export function ProfilePage() {
       .catch((err) => setError(extractErrorMessage(err, 'Failed to load profile.')))
       .finally(() => setLoading(false))
   }, [])
+
+  function handleChoosePhoto() {
+    fileInputRef.current?.click()
+  }
+
+  async function handlePhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      await uploadMyPhoto(file)
+      setProfile((p) => (p ? { ...p, hasPhoto: true } : p))
+      setPhotoVersion((v) => v + 1)
+    } catch (err) {
+      setPhotoError(extractErrorMessage(err, 'Failed to upload photo.'))
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  async function handleRemovePhoto() {
+    if (!window.confirm('Remove your profile photo?')) return
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      await deleteMyPhoto()
+      setProfile((p) => (p ? { ...p, hasPhoto: false } : p))
+    } catch (err) {
+      setPhotoError(extractErrorMessage(err, 'Failed to remove photo.'))
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -40,14 +81,39 @@ export function ProfilePage() {
     <PortalLayout>
       <div className="resume-paper">
         <div className="resume-header">
-          <div className="avatar-circle">{getInitials(profile.fullName)}</div>
+          <div className="avatar-upload-wrap">
+            <Avatar photoUrl={`/me/photo?v=${photoVersion}`} hasPhoto={profile.hasPhoto} name={profile.fullName} />
+            <button
+              type="button"
+              className="avatar-upload-btn"
+              onClick={handleChoosePhoto}
+              disabled={photoBusy}
+              title="Change photo"
+              aria-label="Change photo"
+            >
+              <Icon name="camera" size={14} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden-file-input"
+              onChange={handlePhotoSelected}
+            />
+          </div>
           <div className="resume-heading">
             <h1 className="resume-title">{profile.fullName}</h1>
             <p className="resume-subtitle">
               {[currentRole, profile.currentDepartmentName].filter(Boolean).join(' — ') || 'Employee'}
             </p>
+            {profile.hasPhoto && (
+              <button type="button" className="avatar-remove-link" onClick={handleRemovePhoto} disabled={photoBusy}>
+                Remove photo
+              </button>
+            )}
           </div>
         </div>
+        {photoError && <p className="form-error photo-error">{photoError}</p>}
 
         <div className="resume-contact-row">
           <span className="resume-contact-item">

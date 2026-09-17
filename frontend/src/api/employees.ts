@@ -36,3 +36,15 @@ export function transferDepartment(id: number, departmentId: number, position: s
     .post<Employee>(`/employees/${id}/department`, { departmentId, position, effectiveDate })
     .then((r) => r.data)
 }
+
+export function uploadEmployeePhoto(id: number, file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return apiClient.post(`/employees/${id}/photo`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
+export function deleteEmployeePhoto(id: number) {
+  return apiClient.delete(`/employees/${id}/photo`)
+}

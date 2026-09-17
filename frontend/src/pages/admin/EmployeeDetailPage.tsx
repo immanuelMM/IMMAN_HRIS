@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AdminLayout } from '../../components/AdminLayout'
 import { Icon } from '../../components/Icon'
+import { Avatar } from '../../components/Avatar'
 import {
   deleteEmployee,
+  deleteEmployeePhoto,
   getEmployee,
   regeneratePin,
   transferDepartment,
+  uploadEmployeePhoto,
 } from '../../api/employees'
 import { listDepartments } from '../../api/departments'
 import type { Department, Employee } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
-import { getInitials } from '../../utils/initials'
 import { todayLocalDateString } from '../../utils/dates'
 import { ADMIN_NAV } from './adminNav'
 
@@ -27,6 +29,11 @@ export function EmployeeDetailPage() {
   const [transferDeptId, setTransferDeptId] = useState<number | ''>('')
   const [transferPosition, setTransferPosition] = useState('')
   const [transferDate, setTransferDate] = useState(todayLocalDateString)
+
+  const [photoVersion, setPhotoVersion] = useState(0)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function load() {
     if (!id) return
@@ -61,6 +68,43 @@ export function EmployeeDetailPage() {
       navigate('/admin/employees')
     } catch (err) {
       setError(extractErrorMessage(err, 'Failed to delete employee.'))
+    }
+  }
+
+  function handleChoosePhoto() {
+    fileInputRef.current?.click()
+  }
+
+  async function handlePhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !id) return
+
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      await uploadEmployeePhoto(Number(id), file)
+      setEmployee((emp) => (emp ? { ...emp, hasPhoto: true } : emp))
+      setPhotoVersion((v) => v + 1)
+    } catch (err) {
+      setPhotoError(extractErrorMessage(err, 'Failed to upload photo.'))
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  async function handleRemovePhoto() {
+    if (!id) return
+    if (!window.confirm("Remove this employee's photo?")) return
+    setPhotoBusy(true)
+    setPhotoError(null)
+    try {
+      await deleteEmployeePhoto(Number(id))
+      setEmployee((emp) => (emp ? { ...emp, hasPhoto: false } : emp))
+    } catch (err) {
+      setPhotoError(extractErrorMessage(err, 'Failed to remove photo.'))
+    } finally {
+      setPhotoBusy(false)
     }
   }
 
@@ -112,14 +156,43 @@ export function EmployeeDetailPage() {
 
       <div className="resume-paper">
         <div className="resume-header">
-          <div className="avatar-circle">{getInitials(employee.fullName)}</div>
+          <div className="avatar-upload-wrap">
+            <Avatar
+              photoUrl={`/employees/${employee.id}/photo?v=${photoVersion}`}
+              hasPhoto={employee.hasPhoto}
+              name={employee.fullName}
+            />
+            <button
+              type="button"
+              className="avatar-upload-btn"
+              onClick={handleChoosePhoto}
+              disabled={photoBusy}
+              title="Change photo"
+              aria-label="Change photo"
+            >
+              <Icon name="camera" size={14} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden-file-input"
+              onChange={handlePhotoSelected}
+            />
+          </div>
           <div className="resume-heading">
             <h1 className="resume-title">{employee.fullName}</h1>
             <p className="resume-subtitle">
               {[currentRole, employee.currentDepartmentName].filter(Boolean).join(' — ') || 'Employee'}
             </p>
+            {employee.hasPhoto && (
+              <button type="button" className="avatar-remove-link" onClick={handleRemovePhoto} disabled={photoBusy}>
+                Remove photo
+              </button>
+            )}
           </div>
         </div>
+        {photoError && <p className="form-error photo-error">{photoError}</p>}
 
         <div className="resume-contact-row">
           <span className="resume-contact-item">

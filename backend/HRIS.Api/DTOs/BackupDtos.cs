@@ -41,6 +41,8 @@ public record BackupEmployeeDto(
     string Email,
     DateOnly HireDate,
     int? CurrentDepartmentId,
+    byte[]? PhotoData,
+    string? PhotoContentType,
     BackupAccountDto? Account,
     List<BackupEducationRecordDto> EducationRecords,
     List<BackupEmploymentHistoryDto> EmploymentHistories,

@@ -61,6 +61,7 @@ public record EmployeeResponse(
     int? CurrentDepartmentId,
     string? CurrentDepartmentName,
     string? Username,
+    bool HasPhoto,
     List<EducationRecordDto> EducationRecords,
     List<EmploymentHistoryDto> EmploymentHistories,
     List<DepartmentHistoryDto> DepartmentHistories);

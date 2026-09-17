@@ -58,6 +58,8 @@ public class AdminBackupController : ControllerBase
             e.Email,
             e.HireDate,
             e.CurrentDepartmentId,
+            e.PhotoData,
+            e.PhotoContentType,
             e.Account is null ? null : new BackupAccountDto(e.Account.Username, e.Account.PinHash),
             e.EducationRecords.Select(r => new BackupEducationRecordDto(r.Id, r.Level, r.SchoolName, r.ProgramOrStrand, r.YearGraduated, r.Honors)).ToList(),
             e.EmploymentHistories.Select(h => new BackupEmploymentHistoryDto(h.Id, h.CompanyName, h.Position, h.StartDate, h.EndDate, h.ReasonForLeaving)).ToList(),
@@ -136,6 +138,8 @@ public class AdminBackupController : ControllerBase
                 Email = e.Email,
                 HireDate = e.HireDate,
                 CurrentDepartmentId = e.CurrentDepartmentId,
+                PhotoData = e.PhotoData,
+                PhotoContentType = e.PhotoContentType,
             });
 
             if (e.Account is not null)
@@ -203,6 +207,20 @@ public class AdminBackupController : ControllerBase
             });
         }
         await _db.SaveChangesAsync();
+
+        // We just inserted rows with explicit Ids (to preserve relationships from the
+        // backup), bypassing each table's auto-increment sequence. Postgres doesn't
+        // notice this on its own — its sequences only advance via nextval(), so without
+        // this they'd stay wherever they were and the next normal insert (e.g. creating
+        // a new employee) would collide with an Id that already exists.
+        foreach (var table in new[] { "Departments", "Employees", "EducationRecords", "EmploymentHistories", "DepartmentHistories", "AttendanceRecords" })
+        {
+            // `table` only ever comes from the fixed literal array above — not user input.
+#pragma warning disable EF1002
+            await _db.Database.ExecuteSqlRawAsync(
+                $"SELECT setval(pg_get_serial_sequence('\"{table}\"', 'Id'), COALESCE((SELECT MAX(\"Id\") FROM \"{table}\"), 1), true)");
+#pragma warning restore EF1002
+        }
 
         await transaction.CommitAsync();
 

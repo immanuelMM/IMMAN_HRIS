@@ -34,6 +34,9 @@ public class Employee
 
     public DateOnly HireDate { get; set; }
 
+    public byte[]? PhotoData { get; set; }
+    public string? PhotoContentType { get; set; }
+
     public int? CurrentDepartmentId { get; set; }
     public Department? CurrentDepartment { get; set; }
 

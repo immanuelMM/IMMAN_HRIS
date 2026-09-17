@@ -194,6 +194,68 @@ public class EmployeesController : ControllerBase
         return Ok(new RegeneratePinResponse(account.Username, pin));
     }
 
+    [HttpGet("{id:int}/photo")]
+    public async Task<IActionResult> GetPhoto(int id)
+    {
+        var employee = await _db.Employees.FindAsync(id);
+        if (employee?.PhotoData is null)
+        {
+            return NotFound();
+        }
+
+        return File(employee.PhotoData, employee.PhotoContentType ?? "application/octet-stream");
+    }
+
+    [HttpPost("{id:int}/photo")]
+    [RequestSizeLimit(5_000_000)]
+    public async Task<IActionResult> UploadPhoto(int id, IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { message = "No file uploaded." });
+        }
+
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { message = "File must be an image." });
+        }
+
+        if (file.Length > 5_000_000)
+        {
+            return BadRequest(new { message = "Image must be smaller than 5MB." });
+        }
+
+        var employee = await _db.Employees.FindAsync(id);
+        if (employee is null)
+        {
+            return NotFound();
+        }
+
+        using var stream = new MemoryStream();
+        await file.CopyToAsync(stream);
+        employee.PhotoData = stream.ToArray();
+        employee.PhotoContentType = file.ContentType;
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}/photo")]
+    public async Task<IActionResult> DeletePhoto(int id)
+    {
+        var employee = await _db.Employees.FindAsync(id);
+        if (employee is null)
+        {
+            return NotFound();
+        }
+
+        employee.PhotoData = null;
+        employee.PhotoContentType = null;
+        await _db.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpPost("{id:int}/department")]
     public async Task<ActionResult<EmployeeResponse>> TransferDepartment(int id, DepartmentTransferRequest request)
     {

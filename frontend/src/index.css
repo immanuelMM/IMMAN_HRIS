@@ -472,6 +472,61 @@ input, select {
   font-size: 0.78rem;
 }
 
+.avatar-photo {
+  object-fit: cover;
+  background: var(--color-border);
+}
+
+.avatar-upload-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar-upload-btn {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--admin-sidebar-bg);
+  background: var(--accent-teal);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.avatar-upload-btn:hover:not(:disabled) {
+  background: var(--accent-teal-light);
+}
+
+.avatar-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.avatar-remove-link {
+  margin-top: 0.4rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.avatar-remove-link:hover:not(:disabled) {
+  color: #ffffff;
+}
+
+.photo-error {
+  padding: 0.75rem 2rem 0;
+}
+
 .resume-heading {
   min-width: 0;
 }

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AdminLayout } from '../../components/AdminLayout'
+import { Avatar } from '../../components/Avatar'
 import { listEmployees } from '../../api/employees'
 import type { Employee } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
-import { getInitials } from '../../utils/initials'
 import { ADMIN_NAV } from './adminNav'
 
 export function EmployeeListPage() {
@@ -67,7 +67,7 @@ export function EmployeeListPage() {
                 <tr key={emp.id}>
                   <td>
                     <Link to={`/admin/employees/${emp.id}`} className="table-name-cell">
-                      <span className="avatar-circle avatar-small">{getInitials(emp.fullName)}</span>
+                      <Avatar photoUrl={`/employees/${emp.id}/photo`} hasPhoto={emp.hasPhoto} name={emp.fullName} small />
                       {emp.fullName}
                     </Link>
                   </td>

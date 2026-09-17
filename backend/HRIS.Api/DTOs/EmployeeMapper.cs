@@ -23,6 +23,7 @@ public static class EmployeeMapper
             e.CurrentDepartmentId,
             e.CurrentDepartment?.Name,
             e.Account?.Username,
+            e.PhotoData is not null,
             e.EducationRecords.Select(r => new EducationRecordDto(r.Id, r.Level, r.SchoolName, r.ProgramOrStrand, r.YearGraduated, r.Honors)).ToList(),
             e.EmploymentHistories.Select(h => new EmploymentHistoryDto(h.Id, h.CompanyName, h.Position, h.StartDate, h.EndDate, h.ReasonForLeaving)).ToList(),
             e.DepartmentHistories.Select(d => new DepartmentHistoryDto(d.Id, d.DepartmentId, d.Department?.Name ?? string.Empty, d.Position, d.StartDate, d.EndDate)).ToList());
@@ -38,6 +39,7 @@ public static class EmployeeMapper
             e.Address,
             e.HireDate,
             e.CurrentDepartment?.Name,
+            e.PhotoData is not null,
             e.EducationRecords.Select(r => new EducationRecordDto(r.Id, r.Level, r.SchoolName, r.ProgramOrStrand, r.YearGraduated, r.Honors)).ToList(),
             e.EmploymentHistories.Select(h => new EmploymentHistoryDto(h.Id, h.CompanyName, h.Position, h.StartDate, h.EndDate, h.ReasonForLeaving)).ToList(),
             e.DepartmentHistories.Select(d => new DepartmentHistoryDto(d.Id, d.DepartmentId, d.Department?.Name ?? string.Empty, d.Position, d.StartDate, d.EndDate)).ToList());

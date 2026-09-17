@@ -70,6 +70,7 @@ export interface Employee {
   currentDepartmentId: number | null
   currentDepartmentName: string | null
   username: string | null
+  hasPhoto: boolean
   educationRecords: EducationRecord[]
   employmentHistories: EmploymentHistoryRecord[]
   departmentHistories: DepartmentHistoryRecord[]
@@ -165,6 +166,7 @@ export interface Profile {
   address: string
   hireDate: string
   currentDepartmentName: string | null
+  hasPhoto: boolean
   educationRecords: EducationRecord[]
   employmentHistories: EmploymentHistoryRecord[]
   departmentHistories: DepartmentHistoryRecord[]

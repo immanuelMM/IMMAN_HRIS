@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { PortalLayout } from '../../components/PortalLayout'
 import { Icon } from '../../components/Icon'
 import { Toast } from '../../components/Toast'
+import { Avatar } from '../../components/Avatar'
 import { getAttendance, getProfile, timeIn, timeOut } from '../../api/attendance'
 import type { AttendanceRecord, Profile } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
-import { getInitials } from '../../utils/initials'
 import { todayLocalDateString } from '../../utils/dates'
 import { getTimeInFeedback, getTimeOutFeedback, type AttendanceFeedback } from '../../utils/attendanceFeedback'
 import {
@@ -115,7 +115,7 @@ export function AttendancePage() {
       {toast && <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast(null)} />}
       <div className="resume-paper">
         <div className="resume-header">
-          <div className="avatar-circle">{getInitials(profile?.fullName)}</div>
+          <Avatar photoUrl="/me/photo" hasPhoto={profile?.hasPhoto ?? false} name={profile?.fullName} />
           <div className="resume-heading">
             <h1 className="resume-title">{profile?.fullName ?? 'Employee'}</h1>
             <p className="resume-subtitle">

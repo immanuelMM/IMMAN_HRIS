@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AdminLayout } from '../../components/AdminLayout'
 import { Icon } from '../../components/Icon'
-import { getInitials } from '../../utils/initials'
+import { Avatar } from '../../components/Avatar'
 import { todayLocalDateString } from '../../utils/dates'
 import { ADMIN_NAV } from './adminNav'
 import { listEmployees } from '../../api/employees'
@@ -101,7 +101,7 @@ export function DashboardPage() {
                   <tr key={emp.id}>
                     <td>
                       <Link to={`/admin/employees/${emp.id}`} className="table-name-cell">
-                        <span className="avatar-circle avatar-small">{getInitials(emp.fullName)}</span>
+                        <Avatar photoUrl={`/employees/${emp.id}/photo`} hasPhoto={emp.hasPhoto} name={emp.fullName} small />
                         {emp.fullName}
                       </Link>
                     </td>
