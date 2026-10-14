@@ -43,12 +43,39 @@ public record BackupEmployeeDto(
     int? CurrentDepartmentId,
     byte[]? PhotoData,
     string? PhotoContentType,
+    string? ChurchLocal,
+    string? ChurchDistrict,
+    string? ChurchProvince,
+    string? ChurchRegion,
+    string? ChurchPosition,
+    string? ParentReligion,
+    DateOnly? SabbathDate,
+    string? SkillsExpertise,
+    string? HealthCondition,
+    string? EmergencyContactName,
+    string? EmergencyContactNumber,
+    string? EmergencyContactAddress,
+    string? SssNumber,
+    string? PhilHealthNumber,
+    string? TinNumber,
     BackupAccountDto? Account,
     List<BackupEducationRecordDto> EducationRecords,
     List<BackupEmploymentHistoryDto> EmploymentHistories,
     List<BackupDepartmentHistoryDto> DepartmentHistories);
 
-public record BackupDepartmentDto(int Id, string Name, string? Description);
+public record BackupDepartmentPositionDto(int Id, string Title);
+
+public record BackupDepartmentDto(
+    int Id,
+    string Name,
+    string? Description,
+    string? TeamColor,
+    string? TeamColorSecondary,
+    string IdCardTemplate,
+    string CardOrientation,
+    byte[]? LogoData,
+    string? LogoContentType,
+    List<BackupDepartmentPositionDto> Positions);
 
 public record BackupAttendanceRecordDto(int Id, int EmployeeId, DateOnly Date, DateTime? TimeIn, DateTime? TimeOut);
 

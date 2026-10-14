@@ -54,6 +54,22 @@ export function EmployeeFormPage() {
   const [departmentId, setDepartmentId] = useState<number | ''>('')
   const [position, setPosition] = useState('')
 
+  const [churchLocal, setChurchLocal] = useState('')
+  const [churchDistrict, setChurchDistrict] = useState('')
+  const [churchProvince, setChurchProvince] = useState('')
+  const [churchRegion, setChurchRegion] = useState('')
+  const [churchPosition, setChurchPosition] = useState('')
+  const [parentReligion, setParentReligion] = useState('')
+  const [sabbathDate, setSabbathDate] = useState('')
+  const [skillsExpertise, setSkillsExpertise] = useState('')
+  const [healthCondition, setHealthCondition] = useState('')
+  const [emergencyContactName, setEmergencyContactName] = useState('')
+  const [emergencyContactNumber, setEmergencyContactNumber] = useState('')
+  const [emergencyContactAddress, setEmergencyContactAddress] = useState('')
+  const [sssNumber, setSssNumber] = useState('')
+  const [philHealthNumber, setPhilHealthNumber] = useState('')
+  const [tinNumber, setTinNumber] = useState('')
+
   const [education, setEducation] = useState<EducationRecordInput[]>([{ ...emptyEducation }])
   const [employment, setEmployment] = useState<EmploymentHistoryInput[]>([])
 
@@ -76,6 +92,21 @@ export function EmployeeFormPage() {
         setContactNumber(emp.contactNumber)
         setEmail(emp.email)
         setHireDate(emp.hireDate)
+        setChurchLocal(emp.churchLocal ?? '')
+        setChurchDistrict(emp.churchDistrict ?? '')
+        setChurchProvince(emp.churchProvince ?? '')
+        setChurchRegion(emp.churchRegion ?? '')
+        setChurchPosition(emp.churchPosition ?? '')
+        setParentReligion(emp.parentReligion ?? '')
+        setSabbathDate(emp.sabbathDate ?? '')
+        setSkillsExpertise(emp.skillsExpertise ?? '')
+        setHealthCondition(emp.healthCondition ?? '')
+        setEmergencyContactName(emp.emergencyContactName ?? '')
+        setEmergencyContactNumber(emp.emergencyContactNumber ?? '')
+        setEmergencyContactAddress(emp.emergencyContactAddress ?? '')
+        setSssNumber(emp.sssNumber ?? '')
+        setPhilHealthNumber(emp.philHealthNumber ?? '')
+        setTinNumber(emp.tinNumber ?? '')
         setEducation(
           emp.educationRecords.length
             ? emp.educationRecords.map((r) => ({
@@ -120,6 +151,24 @@ export function EmployeeFormPage() {
       .filter((h) => h.companyName.trim() !== '')
       .map((h) => ({ ...h, reasonForLeaving: h.reasonForLeaving || null, endDate: h.endDate || null }))
 
+    const churchAndPersonalFields = {
+      churchLocal: churchLocal || null,
+      churchDistrict: churchDistrict || null,
+      churchProvince: churchProvince || null,
+      churchRegion: churchRegion || null,
+      churchPosition: churchPosition || null,
+      parentReligion: parentReligion || null,
+      sabbathDate: sabbathDate || null,
+      skillsExpertise: skillsExpertise || null,
+      healthCondition: healthCondition || null,
+      emergencyContactName: emergencyContactName || null,
+      emergencyContactNumber: emergencyContactNumber || null,
+      emergencyContactAddress: emergencyContactAddress || null,
+      sssNumber: sssNumber || null,
+      philHealthNumber: philHealthNumber || null,
+      tinNumber: tinNumber || null,
+    }
+
     setSaving(true)
     try {
       if (isEdit && id) {
@@ -135,6 +184,7 @@ export function EmployeeFormPage() {
           contactNumber,
           email,
           hireDate,
+          ...churchAndPersonalFields,
           educationRecords: cleanedEducation,
           employmentHistories: cleanedEmployment,
         })
@@ -159,6 +209,7 @@ export function EmployeeFormPage() {
           hireDate,
           departmentId: Number(departmentId),
           position,
+          ...churchAndPersonalFields,
           educationRecords: cleanedEducation,
           employmentHistories: cleanedEmployment,
         })
@@ -265,6 +316,90 @@ export function EmployeeFormPage() {
           </div>
         </section>
 
+        <section>
+          <h2>Church Affiliation</h2>
+          <div className="form-grid">
+            <label>
+              Local
+              <input value={churchLocal} onChange={(e) => setChurchLocal(e.target.value)} />
+            </label>
+            <label>
+              District
+              <input value={churchDistrict} onChange={(e) => setChurchDistrict(e.target.value)} />
+            </label>
+            <label>
+              Province
+              <input value={churchProvince} onChange={(e) => setChurchProvince(e.target.value)} />
+            </label>
+            <label>
+              Region
+              <input value={churchRegion} onChange={(e) => setChurchRegion(e.target.value)} />
+            </label>
+            <label>
+              Position / Designation
+              <input value={churchPosition} onChange={(e) => setChurchPosition(e.target.value)} />
+            </label>
+            <label>
+              Parent Religion
+              <input value={parentReligion} onChange={(e) => setParentReligion(e.target.value)} />
+            </label>
+            <label>
+              Sabbath Date
+              <input type="date" value={sabbathDate} onChange={(e) => setSabbathDate(e.target.value)} />
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2>Skills &amp; Health</h2>
+          <div className="form-grid">
+            <label className="span-2">
+              Skills / Expertise
+              <textarea value={skillsExpertise} onChange={(e) => setSkillsExpertise(e.target.value)} rows={3} />
+            </label>
+            <label className="span-2">
+              Health Condition
+              <textarea value={healthCondition} onChange={(e) => setHealthCondition(e.target.value)} rows={2} />
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2>Emergency Contact</h2>
+          <div className="form-grid">
+            <label>
+              Name
+              <input value={emergencyContactName} onChange={(e) => setEmergencyContactName(e.target.value)} />
+            </label>
+            <label>
+              Contact No.
+              <input value={emergencyContactNumber} onChange={(e) => setEmergencyContactNumber(e.target.value)} />
+            </label>
+            <label className="span-2">
+              Address
+              <input value={emergencyContactAddress} onChange={(e) => setEmergencyContactAddress(e.target.value)} />
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2>Government IDs</h2>
+          <div className="form-grid">
+            <label>
+              SSS No.
+              <input value={sssNumber} onChange={(e) => setSssNumber(e.target.value)} />
+            </label>
+            <label>
+              PhilHealth No.
+              <input value={philHealthNumber} onChange={(e) => setPhilHealthNumber(e.target.value)} />
+            </label>
+            <label>
+              TIN No.
+              <input value={tinNumber} onChange={(e) => setTinNumber(e.target.value)} />
+            </label>
+          </div>
+        </section>
+
         {!isEdit && (
           <section>
             <h2>Initial Department Assignment</h2>
@@ -286,7 +421,17 @@ export function EmployeeFormPage() {
               </label>
               <label>
                 Position
-                <input value={position} onChange={(e) => setPosition(e.target.value)} required />
+                <input
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  list="initial-position-suggestions"
+                  required
+                />
+                <datalist id="initial-position-suggestions">
+                  {departments
+                    .find((d) => d.id === departmentId)
+                    ?.positions.map((p) => <option key={p.id} value={p.title} />)}
+                </datalist>
               </label>
             </div>
           </section>

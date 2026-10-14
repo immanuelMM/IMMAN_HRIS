@@ -37,6 +37,29 @@ public class Employee
     public byte[]? PhotoData { get; set; }
     public string? PhotoContentType { get; set; }
 
+    // Church affiliation
+    public string? ChurchLocal { get; set; }
+    public string? ChurchDistrict { get; set; }
+    public string? ChurchProvince { get; set; }
+    public string? ChurchRegion { get; set; }
+    public string? ChurchPosition { get; set; }
+    public string? ParentReligion { get; set; }
+    public DateOnly? SabbathDate { get; set; }
+
+    // Skills / health
+    public string? SkillsExpertise { get; set; }
+    public string? HealthCondition { get; set; }
+
+    // Emergency contact
+    public string? EmergencyContactName { get; set; }
+    public string? EmergencyContactNumber { get; set; }
+    public string? EmergencyContactAddress { get; set; }
+
+    // Philippine government IDs
+    public string? SssNumber { get; set; }
+    public string? PhilHealthNumber { get; set; }
+    public string? TinNumber { get; set; }
+
     public int? CurrentDepartmentId { get; set; }
     public Department? CurrentDepartment { get; set; }
 

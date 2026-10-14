@@ -34,7 +34,18 @@ public class AdminBackupController : ControllerBase
     public async Task<IActionResult> Export()
     {
         var departments = await _db.Departments
-            .Select(d => new BackupDepartmentDto(d.Id, d.Name, d.Description))
+            .Include(d => d.Positions)
+            .Select(d => new BackupDepartmentDto(
+                d.Id,
+                d.Name,
+                d.Description,
+                d.TeamColor,
+                d.TeamColorSecondary,
+                d.IdCardTemplate,
+                d.CardOrientation,
+                d.LogoData,
+                d.LogoContentType,
+                d.Positions.Select(p => new BackupDepartmentPositionDto(p.Id, p.Title)).ToList()))
             .ToListAsync();
 
         var employees = await _db.Employees
@@ -60,6 +71,21 @@ public class AdminBackupController : ControllerBase
             e.CurrentDepartmentId,
             e.PhotoData,
             e.PhotoContentType,
+            e.ChurchLocal,
+            e.ChurchDistrict,
+            e.ChurchProvince,
+            e.ChurchRegion,
+            e.ChurchPosition,
+            e.ParentReligion,
+            e.SabbathDate,
+            e.SkillsExpertise,
+            e.HealthCondition,
+            e.EmergencyContactName,
+            e.EmergencyContactNumber,
+            e.EmergencyContactAddress,
+            e.SssNumber,
+            e.PhilHealthNumber,
+            e.TinNumber,
             e.Account is null ? null : new BackupAccountDto(e.Account.Username, e.Account.PinHash),
             e.EducationRecords.Select(r => new BackupEducationRecordDto(r.Id, r.Level, r.SchoolName, r.ProgramOrStrand, r.YearGraduated, r.Honors)).ToList(),
             e.EmploymentHistories.Select(h => new BackupEmploymentHistoryDto(h.Id, h.CompanyName, h.Position, h.StartDate, h.EndDate, h.ReasonForLeaving)).ToList(),
@@ -113,11 +139,32 @@ public class AdminBackupController : ControllerBase
         await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"EducationRecords\"");
         await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"EmployeeAccounts\"");
         await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"Employees\"");
+        await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"DepartmentPositions\"");
         await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"Departments\"");
 
         foreach (var d in backup.Departments)
         {
-            _db.Departments.Add(new Department { Id = d.Id, Name = d.Name, Description = d.Description });
+            _db.Departments.Add(new Department
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Description = d.Description,
+                TeamColor = d.TeamColor,
+                TeamColorSecondary = d.TeamColorSecondary,
+                IdCardTemplate = d.IdCardTemplate,
+                CardOrientation = d.CardOrientation,
+                LogoData = d.LogoData,
+                LogoContentType = d.LogoContentType,
+            });
+        }
+        await _db.SaveChangesAsync();
+
+        foreach (var d in backup.Departments)
+        {
+            foreach (var p in d.Positions)
+            {
+                _db.DepartmentPositions.Add(new DepartmentPosition { Id = p.Id, DepartmentId = d.Id, Title = p.Title });
+            }
         }
         await _db.SaveChangesAsync();
 
@@ -140,6 +187,21 @@ public class AdminBackupController : ControllerBase
                 CurrentDepartmentId = e.CurrentDepartmentId,
                 PhotoData = e.PhotoData,
                 PhotoContentType = e.PhotoContentType,
+                ChurchLocal = e.ChurchLocal,
+                ChurchDistrict = e.ChurchDistrict,
+                ChurchProvince = e.ChurchProvince,
+                ChurchRegion = e.ChurchRegion,
+                ChurchPosition = e.ChurchPosition,
+                ParentReligion = e.ParentReligion,
+                SabbathDate = e.SabbathDate,
+                SkillsExpertise = e.SkillsExpertise,
+                HealthCondition = e.HealthCondition,
+                EmergencyContactName = e.EmergencyContactName,
+                EmergencyContactNumber = e.EmergencyContactNumber,
+                EmergencyContactAddress = e.EmergencyContactAddress,
+                SssNumber = e.SssNumber,
+                PhilHealthNumber = e.PhilHealthNumber,
+                TinNumber = e.TinNumber,
             });
 
             if (e.Account is not null)
@@ -213,7 +275,7 @@ public class AdminBackupController : ControllerBase
         // notice this on its own — its sequences only advance via nextval(), so without
         // this they'd stay wherever they were and the next normal insert (e.g. creating
         // a new employee) would collide with an Id that already exists.
-        foreach (var table in new[] { "Departments", "Employees", "EducationRecords", "EmploymentHistories", "DepartmentHistories", "AttendanceRecords" })
+        foreach (var table in new[] { "Departments", "Employees", "EducationRecords", "EmploymentHistories", "DepartmentHistories", "AttendanceRecords", "DepartmentPositions" })
         {
             // `table` only ever comes from the fixed literal array above — not user input.
 #pragma warning disable EF1002

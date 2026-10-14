@@ -1,9 +1,10 @@
 using HRIS.Api.Models;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRIS.Api.Data;
 
-public class HrisDbContext : DbContext
+public class HrisDbContext : DbContext, IDataProtectionKeyContext
 {
     public HrisDbContext(DbContextOptions<HrisDbContext> options) : base(options)
     {
@@ -17,6 +18,13 @@ public class HrisDbContext : DbContext
     public DbSet<EmployeeAccount> EmployeeAccounts => Set<EmployeeAccount>();
     public DbSet<AdminAccount> AdminAccounts => Set<AdminAccount>();
     public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
+    public DbSet<NotificationSettings> NotificationSettings => Set<NotificationSettings>();
+    public DbSet<DepartmentPosition> DepartmentPositions => Set<DepartmentPosition>();
+
+    // Data Protection keys must live in Postgres, not the container's local
+    // disk — Render's filesystem is ephemeral, so keys stored on disk would
+    // be regenerated (and previously-encrypted secrets lost) on every redeploy.
+    public DbSet<Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey> DataProtectionKeys => Set<Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -78,6 +86,12 @@ public class HrisDbContext : DbContext
         // and doesn't apply any timezone conversion of its own.
         modelBuilder.Entity<AttendanceRecord>().Property(a => a.TimeIn).HasColumnType("timestamp without time zone");
         modelBuilder.Entity<AttendanceRecord>().Property(a => a.TimeOut).HasColumnType("timestamp without time zone");
+
+        modelBuilder.Entity<DepartmentPosition>()
+            .HasOne(p => p.Department)
+            .WithMany(d => d.Positions)
+            .HasForeignKey(p => p.DepartmentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Employee>().Property(e => e.Gender).HasConversion<string>();
         modelBuilder.Entity<Employee>().Property(e => e.CivilStatus).HasConversion<string>();

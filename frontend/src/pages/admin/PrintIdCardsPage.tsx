@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { QRCodeCanvas } from 'qrcode.react'
 import { AdminLayout } from '../../components/AdminLayout'
-import { Avatar } from '../../components/Avatar'
+import { IdCardBackInner, IdCardFrontInner, type IdCardPersonData } from '../../components/IdCardFace'
 import { Icon } from '../../components/Icon'
 import { getAllEmployeeQrTokens, listEmployees } from '../../api/employees'
 import type { Employee, EmployeeQrToken } from '../../api/types'
@@ -61,58 +60,39 @@ export function PrintIdCardsPage() {
 function IdPrintPair({ employee, token }: { employee: Employee; token?: string }) {
   const currentRole = employee.departmentHistories.find((d) => !d.endDate)?.position
   const employeeNo = `EMP-${String(employee.id).padStart(5, '0')}`
+  const template = employee.currentDepartmentIdCardTemplate
+  const orientationClass = employee.currentDepartmentCardOrientation === 'vertical' ? 'id-card-vertical' : ''
+  const brandStyle = employee.currentDepartmentColor
+    ? ({
+        '--accent-teal': employee.currentDepartmentColor,
+        ...(employee.currentDepartmentColorSecondary
+          ? { '--accent-teal-2': employee.currentDepartmentColorSecondary }
+          : {}),
+      } as CSSProperties)
+    : undefined
+
+  const data: IdCardPersonData = {
+    fullName: employee.fullName,
+    roleOrPosition: currentRole ?? 'Employee',
+    departmentName: employee.currentDepartmentName ?? 'IMMAN HRIS',
+    employeeNo,
+    contactNumber: employee.contactNumber,
+    address: employee.address,
+    email: employee.email,
+    photoUrl: `/employees/${employee.id}/photo`,
+    hasPhoto: employee.hasPhoto,
+    logoUrl: employee.currentDepartmentId ? `/departments/${employee.currentDepartmentId}/logo` : '',
+    hasLogo: employee.currentDepartmentHasLogo,
+  }
 
   return (
-    <div className="id-print-pair">
-      <div className="id-print-card">
-        <div className="id-card-band">
-          <Icon name="building" size={16} />
-          <span>{employee.currentDepartmentName ?? 'IMMAN HRIS'}</span>
-        </div>
-        <div className="id-card-body">
-          <Avatar
-            photoUrl={`/employees/${employee.id}/photo`}
-            hasPhoto={employee.hasPhoto}
-            name={employee.fullName}
-            className="id-card-avatar"
-          />
-          <div className="id-card-identity">
-            <div className="id-card-name">{employee.fullName}</div>
-            <div className="id-card-role">{currentRole ?? 'Employee'}</div>
-            <div className="id-card-contact">
-              <span className="id-card-contact-line" title={employee.contactNumber}>
-                <Icon name="phone" size={11} /> {employee.contactNumber}
-              </span>
-              <span className="id-card-contact-line" title={employee.address}>
-                <Icon name="map-pin" size={11} /> {employee.address}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="id-card-footer">
-          <span>{employeeNo}</span>
-          <span>Official Employee ID</span>
-        </div>
+    <div className="id-print-pair" style={brandStyle}>
+      <div className={`id-print-card ${orientationClass} id-card-template-${template}`}>
+        <IdCardFrontInner template={template} data={data} />
       </div>
 
-      <div className="id-print-card">
-        <div className="id-card-band id-card-band-alt">
-          <span>Scan for Attendance</span>
-        </div>
-        <div className="id-card-back-body">
-          {token ? (
-            <div className="id-card-qr-wrap">
-              <QRCodeCanvas value={token} size={116} level="M" includeMargin={false} />
-            </div>
-          ) : (
-            <p className="id-card-loading">QR unavailable</p>
-          )}
-          <p className="id-card-instructions">Present this code to the admin scanner to clock in or out.</p>
-        </div>
-        <div className="id-card-footer">
-          <span>{employeeNo}</span>
-          <span>Valid while employed</span>
-        </div>
+      <div className={`id-print-card ${orientationClass} id-card-template-${template}`}>
+        <IdCardBackInner template={template} data={data} token={token ?? null} error={null} />
       </div>
     </div>
   )

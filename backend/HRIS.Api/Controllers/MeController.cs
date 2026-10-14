@@ -45,6 +45,23 @@ public class MeController : ControllerBase
         return employee is null ? NotFound() : Ok(EmployeeMapper.ToProfile(employee));
     }
 
+    [HttpGet("export")]
+    public async Task<IActionResult> Export()
+    {
+        var employee = await _db.Employees
+            .Include(e => e.CurrentDepartment)
+            .Include(e => e.Account)
+            .Include(e => e.EducationRecords)
+            .Include(e => e.EmploymentHistories)
+            .Include(e => e.DepartmentHistories).ThenInclude(dh => dh.Department)
+            .FirstOrDefaultAsync(e => e.Id == CurrentEmployeeId);
+        if (employee is null) return NotFound();
+
+        var bytes = EmployeeProfileDocumentGenerator.GenerateWord(employee);
+        return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            $"{employee.FullName.Replace(' ', '-')}-profile.docx");
+    }
+
     [HttpGet("photo")]
     public async Task<IActionResult> GetPhoto()
     {

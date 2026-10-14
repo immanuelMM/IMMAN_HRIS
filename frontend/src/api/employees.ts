@@ -4,6 +4,7 @@ import type {
   CreateEmployeeResponse,
   Employee,
   EmployeeQrToken,
+  PinDeliveryChannel,
   RegeneratePinResponse,
   UpdateEmployeeRequest,
 } from './types'
@@ -28,8 +29,10 @@ export function deleteEmployee(id: number) {
   return apiClient.delete(`/employees/${id}`)
 }
 
-export function regeneratePin(id: number) {
-  return apiClient.post<RegeneratePinResponse>(`/employees/${id}/regenerate-pin`).then((r) => r.data)
+export function regeneratePin(id: number, channel?: PinDeliveryChannel) {
+  return apiClient
+    .post<RegeneratePinResponse>(`/employees/${id}/regenerate-pin`, { channel: channel ?? null })
+    .then((r) => r.data)
 }
 
 export function transferDepartment(id: number, departmentId: number, position: string, effectiveDate: string) {
@@ -52,4 +55,21 @@ export function deleteEmployeePhoto(id: number) {
 
 export function getAllEmployeeQrTokens() {
   return apiClient.get<EmployeeQrToken[]>('/employees/qr-tokens').then((r) => r.data)
+}
+
+export async function downloadEmployeeProfileWord(id: number) {
+  const response = await apiClient.get(`/employees/${id}/export`, { responseType: 'blob' })
+
+  const contentDisposition = response.headers['content-disposition'] as string | undefined
+  const match = contentDisposition?.match(/filename="([^"]+)"|filename=([^;]+)/)
+  const filename = (match?.[1] ?? match?.[2])?.trim() ?? 'employee-profile.docx'
+
+  const url = URL.createObjectURL(response.data as Blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }

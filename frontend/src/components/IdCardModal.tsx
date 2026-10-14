@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { QRCodeCanvas } from 'qrcode.react'
-import { Avatar } from './Avatar'
+import { useEffect, useState, type CSSProperties } from 'react'
+import { IdCardBackInner, IdCardFrontInner, type IdCardPersonData } from './IdCardFace'
 import { Icon } from './Icon'
 import { getMyQrToken } from '../api/attendance'
 import { extractErrorMessage } from '../api/client'
@@ -19,6 +18,30 @@ export function IdCardModal({ profile, onClose }: { profile: Profile; onClose: (
 
   const currentRole = profile.departmentHistories.find((d) => !d.endDate)?.position
   const employeeNo = `EMP-${String(profile.id).padStart(5, '0')}`
+  const template = profile.currentDepartmentIdCardTemplate
+  const orientationClass = profile.currentDepartmentCardOrientation === 'vertical' ? 'id-card-vertical' : ''
+  const brandStyle = profile.currentDepartmentColor
+    ? ({
+        '--accent-teal': profile.currentDepartmentColor,
+        ...(profile.currentDepartmentColorSecondary
+          ? { '--accent-teal-2': profile.currentDepartmentColorSecondary }
+          : {}),
+      } as CSSProperties)
+    : undefined
+
+  const data: IdCardPersonData = {
+    fullName: profile.fullName,
+    roleOrPosition: currentRole ?? 'Employee',
+    departmentName: profile.currentDepartmentName ?? 'IMMAN HRIS',
+    employeeNo,
+    contactNumber: profile.contactNumber,
+    address: profile.address,
+    email: profile.email,
+    photoUrl: '/me/photo',
+    hasPhoto: profile.hasPhoto,
+    logoUrl: profile.currentDepartmentId ? `/departments/${profile.currentDepartmentId}/logo` : '',
+    hasLogo: profile.currentDepartmentHasLogo,
+  }
 
   return (
     <div className="modal-overlay no-print" onClick={onClose}>
@@ -31,59 +54,14 @@ export function IdCardModal({ profile, onClose }: { profile: Profile; onClose: (
         </div>
 
         <div className="modal-body id-card-modal-body">
-          <div className="id-card-scene">
+          <div className={`id-card-scene ${orientationClass}`} style={brandStyle}>
             <div className={`id-card-flip ${flipped ? 'flipped' : ''}`}>
-              <div className="id-card-face id-card-front">
-                <div className="id-card-band">
-                  <Icon name="building" size={16} />
-                  <span>{profile.currentDepartmentName ?? 'IMMAN HRIS'}</span>
-                </div>
-                <div className="id-card-body">
-                  <Avatar
-                    photoUrl={`/me/photo`}
-                    hasPhoto={profile.hasPhoto}
-                    name={profile.fullName}
-                    className="id-card-avatar"
-                  />
-                  <div className="id-card-identity">
-                    <div className="id-card-name">{profile.fullName}</div>
-                    <div className="id-card-role">{currentRole ?? 'Employee'}</div>
-                    <div className="id-card-contact">
-                      <span className="id-card-contact-line" title={profile.contactNumber}>
-                        <Icon name="phone" size={11} /> {profile.contactNumber}
-                      </span>
-                      <span className="id-card-contact-line" title={profile.address}>
-                        <Icon name="map-pin" size={11} /> {profile.address}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="id-card-footer">
-                  <span>{employeeNo}</span>
-                  <span>Official Employee ID</span>
-                </div>
+              <div className={`id-card-face id-card-front id-card-template-${template}`}>
+                <IdCardFrontInner template={template} data={data} />
               </div>
 
-              <div className="id-card-face id-card-back">
-                <div className="id-card-band id-card-band-alt">
-                  <span>Scan for Attendance</span>
-                </div>
-                <div className="id-card-back-body">
-                  {error && <p className="form-error">{error}</p>}
-                  {!error && token && (
-                    <div className="id-card-qr-wrap">
-                      <QRCodeCanvas value={token} size={116} level="M" includeMargin={false} />
-                    </div>
-                  )}
-                  {!error && !token && <p className="id-card-loading">Loading QR...</p>}
-                  <p className="id-card-instructions">
-                    Present this code to the admin scanner to clock in or out.
-                  </p>
-                </div>
-                <div className="id-card-footer">
-                  <span>{employeeNo}</span>
-                  <span>Valid while employed</span>
-                </div>
+              <div className={`id-card-face id-card-back id-card-template-${template}`}>
+                <IdCardBackInner template={template} data={data} token={token} error={error} />
               </div>
             </div>
           </div>

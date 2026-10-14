@@ -77,18 +77,23 @@ ul {
   padding-left: 1.1em;
 }
 
-input, select, button {
+input, select, textarea, button {
   font: inherit;
   color: inherit;
 }
 
-input, select {
+input, select, textarea {
   padding: 0.55rem 0.65rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
   color: var(--color-text);
   font-weight: 500;
+}
+
+textarea {
+  resize: vertical;
+  font-family: inherit;
 }
 
 .resume-paper input,
@@ -706,6 +711,17 @@ input, select {
   font-weight: 600;
   font-size: 0.8rem;
   margin-top: 0.15rem;
+}
+
+.timeline-duration {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--accent-teal);
+  font-weight: 700;
+  font-size: 0.72rem;
 }
 
 .timeline-note {
@@ -1526,6 +1542,50 @@ table a:hover {
   color: var(--color-primary);
 }
 
+.pin-result {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.pin-delivery-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.pin-delivery-note.pin-delivery-sent {
+  color: var(--accent-teal);
+  font-weight: 600;
+}
+
+.pin-channel-btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.7rem;
+  padding: 0.75rem 1rem;
+}
+
+.pin-channel-btn span {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  text-align: left;
+}
+
+.pin-channel-btn small {
+  font-weight: 400;
+  opacity: 0.85;
+  font-size: 0.78rem;
+}
+
 /* Login page */
 .login-page {
   min-height: 100vh;
@@ -1576,6 +1636,8 @@ table a:hover {
   margin: 0 auto 1rem;
   display: flex;
   justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 @media print {
@@ -1643,6 +1705,11 @@ table a:hover {
   perspective: 1400px;
 }
 
+.id-card-scene.id-card-vertical {
+  width: 240px;
+  height: 340px;
+}
+
 .id-card-flip {
   position: relative;
   width: 100%;
@@ -1675,7 +1742,7 @@ table a:hover {
 }
 
 .id-card-band {
-  background: var(--accent-teal);
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-teal-2, var(--accent-teal)));
   color: #ffffff;
   padding: 0.55rem 0.9rem;
   display: flex;
@@ -1759,10 +1826,14 @@ table a:hover {
   justify-content: space-between;
   padding: 0.4rem 0.9rem;
   font-size: 0.66rem;
-  color: #6b7280;
-  border-top: 1px dashed var(--color-border);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-teal-2, var(--accent-teal)));
   letter-spacing: 0.02em;
   flex-shrink: 0;
+}
+
+.id-card-footer span {
+  opacity: 0.92;
 }
 
 .id-card-back-body {
@@ -1776,13 +1847,19 @@ table a:hover {
   text-align: center;
   min-height: 0;
   overflow: hidden;
+  background: linear-gradient(160deg, var(--accent-teal), var(--accent-teal-2, var(--accent-teal)));
+}
+
+.id-card-template-wave .id-card-back .id-card-instructions,
+.id-card-template-wave .id-card-back .id-card-loading {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .id-card-qr-wrap {
   background: #ffffff;
   padding: 8px;
   border-radius: 8px;
-  border: 1px solid var(--color-border);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   line-height: 0;
 }
 
@@ -1830,6 +1907,11 @@ table a:hover {
   border: 1px solid var(--color-border);
   color: #1f2733;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.id-print-card.id-card-vertical {
+  width: 240px;
+  height: 340px;
 }
 
 /* Admin scan attendance page */
@@ -1961,5 +2043,608 @@ table a:hover {
 
 .scan-result-error .scan-result-message {
   color: #dc2626;
+}
+
+/* Admin settings — notification (email/SMS) configuration */
+.checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem !important;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: auto;
+}
+
+.settings-subsection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.settings-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 1.25rem 0 0.5rem;
+}
+
+.settings-subsection:first-child .settings-section-title {
+  margin-top: 0;
+}
+
+.settings-status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.settings-status-on {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--accent-teal);
+}
+
+.settings-status-fallback {
+  background: rgba(202, 138, 4, 0.14);
+  color: #b45309;
+}
+
+.settings-status-off {
+  background: rgba(107, 114, 128, 0.14);
+  color: var(--color-text-muted);
+}
+
+.settings-save-notice {
+  margin: 0 0 0 0.75rem;
+  display: inline-block;
+}
+
+.settings-test-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 640px) {
+  .settings-test-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.settings-test-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.settings-test-group label {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Departments: logo, team color, available positions */
+.color-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.color-field input[type='color'] {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 52px;
+  height: 38px;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.color-field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.team-color-picker {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.department-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.department-card {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.department-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.department-logo-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.department-card-title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.department-card-title h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.department-card-title input {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.department-color-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.department-employee-count {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.department-description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.department-description-input {
+  width: 100%;
+}
+
+.department-card-section {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.6rem;
+}
+
+.department-logo-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.department-position-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.department-position-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.4rem 0.2rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.department-position-chip button {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+.department-position-chip button:hover {
+  color: var(--color-danger);
+}
+
+.department-position-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.department-position-form input {
+  flex: 1;
+}
+
+.department-card-actions {
+  margin-top: 0.3rem;
+}
+
+.department-template-field {
+  margin-top: 0.75rem;
+}
+
+.department-template-label {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* Shared label:value field row, used by the arch/stripe ID card templates */
+.idf-field-row {
+  display: flex;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.idf-field-label {
+  font-weight: 700;
+  width: 48px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--accent-teal);
+}
+
+.idf-field-colon {
+  color: #9aa5b1;
+}
+
+.idf-field-value {
+  color: #1f2733;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Template: Arch Classic ===== */
+.id-card-template-arch .arch-header {
+  flex-shrink: 0;
+  height: 56px;
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-teal-2, var(--accent-teal)));
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+  border-radius: 0 0 50% 50%/0 0 28px 28px;
+  padding: 0 2.2rem 14px;
+  text-align: center;
+}
+
+.id-card-template-arch .arch-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.id-card-template-arch .arch-header-small {
+  border-radius: 0 0 18px 18px;
+  padding: 0 1rem;
+  height: 40px;
+  font-size: 0.8rem;
+}
+
+.id-card-template-arch .arch-photo-wrap {
+  flex-shrink: 0;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.id-card-template-arch .arch-photo {
+  width: 60px;
+  height: 60px;
+  margin-top: -30px;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+  font-size: 1rem;
+}
+
+.id-card-template-arch .arch-identity {
+  flex-shrink: 0;
+  text-align: center;
+  margin-top: 0.55rem;
+  padding: 0 0.5rem;
+}
+
+.id-card-template-arch .arch-name {
+  font-weight: 700;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.id-card-template-arch .arch-role {
+  font-size: 0.7rem;
+  color: var(--accent-teal);
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.id-card-template-arch .arch-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.4rem 1.1rem;
+  min-height: 0;
+}
+
+.id-card-template-arch .arch-back-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.3rem 1rem;
+  text-align: center;
+  min-height: 0;
+}
+
+/* ===== Template: Diagonal Chevron ===== */
+/* .id-card-face already has position:absolute (needed for the flip animation);
+   .id-print-card does not, so it needs its own positioning context here —
+   scoped narrowly so it doesn't clobber the modal's absolute positioning. */
+.id-print-card.id-card-template-chevron {
+  position: relative;
+}
+
+.id-card-template-chevron .chevron-shape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 86px;
+  z-index: 0;
+}
+
+.id-card-template-chevron .chevron-header,
+.id-card-template-chevron .chevron-photo-wrap,
+.id-card-template-chevron .chevron-identity,
+.id-card-template-chevron .chevron-contact,
+.id-card-template-chevron .chevron-barcode,
+.id-card-template-chevron .chevron-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.id-card-template-chevron .chevron-shape-1 {
+  background: var(--accent-teal);
+  clip-path: polygon(0 0, 100% 0, 100% 52%, 0 82%);
+}
+
+.id-card-template-chevron .chevron-shape-2 {
+  background: var(--accent-teal-2, var(--accent-teal));
+  opacity: 0.55;
+  height: 100px;
+  clip-path: polygon(0 0, 100% 0, 100% 30%, 0 60%);
+}
+
+.id-card-template-chevron .chevron-header {
+  position: relative;
+  flex-shrink: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 0 0.9rem;
+}
+
+.id-card-template-chevron .chevron-header span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.id-card-template-chevron .chevron-photo-wrap {
+  position: relative;
+  flex-shrink: 0;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+}
+
+.id-card-template-chevron .chevron-photo {
+  width: 56px;
+  height: 56px;
+  margin-top: -20px;
+  border-radius: 10px;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+  font-size: 0.9rem;
+}
+
+.id-card-template-chevron .chevron-identity {
+  position: relative;
+  flex-shrink: 0;
+  text-align: center;
+  margin-top: 0.35rem;
+}
+
+.id-card-template-chevron .chevron-name {
+  font-weight: 700;
+  font-size: 0.84rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 0.5rem;
+}
+
+.id-card-template-chevron .chevron-role {
+  font-size: 0.7rem;
+  color: var(--accent-teal);
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.id-card-template-chevron .chevron-contact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-height: 0;
+}
+
+.id-card-template-chevron .chevron-barcode {
+  flex-shrink: 0;
+  height: 14px;
+  margin: 0 1.1rem;
+  background: repeating-linear-gradient(90deg, #1f2733 0 2px, transparent 2px 4px);
+}
+
+.id-card-template-chevron .chevron-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.64rem;
+  color: #6b7280;
+  letter-spacing: 0.02em;
+}
+
+.id-card-template-chevron .chevron-back-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.3rem 1rem;
+  text-align: center;
+  min-height: 0;
+}
+
+/* ===== Template: Diagonal Stripe ===== */
+.id-card-template-stripe .stripe-band {
+  flex-shrink: 0;
+  height: 22px;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--accent-teal) 0 10px,
+    var(--accent-teal-2, var(--accent-teal)) 10px 20px
+  );
+}
+
+.id-card-template-stripe .stripe-top-label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: #1f2733;
+  padding: 0.3rem 0.9rem 0;
+}
+
+.id-card-template-stripe .stripe-top-label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.id-card-template-stripe .stripe-photo-wrap {
+  flex-shrink: 0;
+  height: 64px;
+  display: flex;
+  justify-content: center;
+}
+
+.id-card-template-stripe .stripe-photo {
+  width: 58px;
+  height: 58px;
+  margin-top: 6px;
+  border: 3px solid var(--accent-teal);
+  font-size: 0.95rem;
+}
+
+.id-card-template-stripe .stripe-identity {
+  flex-shrink: 0;
+  text-align: center;
+  margin-top: 0.3rem;
+}
+
+.id-card-template-stripe .stripe-name {
+  font-weight: 700;
+  font-size: 0.84rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 0.5rem;
+}
+
+.id-card-template-stripe .stripe-role {
+  font-size: 0.7rem;
+  color: var(--accent-teal);
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.id-card-template-stripe .arch-fields {
+  flex: 1;
+  justify-content: center;
+}
+
+.id-card-template-stripe .stripe-back-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.3rem 1rem;
+  text-align: center;
+  min-height: 0;
 }
 

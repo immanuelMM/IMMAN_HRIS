@@ -32,3 +32,20 @@ export function uploadMyPhoto(file: File) {
 export function deleteMyPhoto() {
   return apiClient.delete('/me/photo')
 }
+
+export async function downloadMyProfileWord() {
+  const response = await apiClient.get('/me/export', { responseType: 'blob' })
+
+  const contentDisposition = response.headers['content-disposition'] as string | undefined
+  const match = contentDisposition?.match(/filename="([^"]+)"|filename=([^;]+)/)
+  const filename = (match?.[1] ?? match?.[2])?.trim() ?? 'employee-profile.docx'
+
+  const url = URL.createObjectURL(response.data as Blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}

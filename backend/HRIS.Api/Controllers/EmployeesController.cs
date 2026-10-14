@@ -17,13 +17,20 @@ public class EmployeesController : ControllerBase
     private readonly CredentialGenerator _credentials;
     private readonly CredentialHasher _hasher;
     private readonly EmployeeQrService _qr;
+    private readonly PinDeliveryService _pinDelivery;
 
-    public EmployeesController(HrisDbContext db, CredentialGenerator credentials, CredentialHasher hasher, EmployeeQrService qr)
+    public EmployeesController(
+        HrisDbContext db,
+        CredentialGenerator credentials,
+        CredentialHasher hasher,
+        EmployeeQrService qr,
+        PinDeliveryService pinDelivery)
     {
         _db = db;
         _credentials = credentials;
         _hasher = hasher;
         _qr = qr;
+        _pinDelivery = pinDelivery;
     }
 
     private IQueryable<Employee> EmployeeQuery() => _db.Employees
@@ -70,6 +77,21 @@ public class EmployeesController : ControllerBase
             Email = request.Email,
             HireDate = request.HireDate,
             CurrentDepartmentId = request.DepartmentId,
+            ChurchLocal = request.ChurchLocal,
+            ChurchDistrict = request.ChurchDistrict,
+            ChurchProvince = request.ChurchProvince,
+            ChurchRegion = request.ChurchRegion,
+            ChurchPosition = request.ChurchPosition,
+            ParentReligion = request.ParentReligion,
+            SabbathDate = request.SabbathDate,
+            SkillsExpertise = request.SkillsExpertise,
+            HealthCondition = request.HealthCondition,
+            EmergencyContactName = request.EmergencyContactName,
+            EmergencyContactNumber = request.EmergencyContactNumber,
+            EmergencyContactAddress = request.EmergencyContactAddress,
+            SssNumber = request.SssNumber,
+            PhilHealthNumber = request.PhilHealthNumber,
+            TinNumber = request.TinNumber,
         };
 
         foreach (var edu in request.EducationRecords)
@@ -139,6 +161,21 @@ public class EmployeesController : ControllerBase
         employee.ContactNumber = request.ContactNumber;
         employee.Email = request.Email;
         employee.HireDate = request.HireDate;
+        employee.ChurchLocal = request.ChurchLocal;
+        employee.ChurchDistrict = request.ChurchDistrict;
+        employee.ChurchProvince = request.ChurchProvince;
+        employee.ChurchRegion = request.ChurchRegion;
+        employee.ChurchPosition = request.ChurchPosition;
+        employee.ParentReligion = request.ParentReligion;
+        employee.SabbathDate = request.SabbathDate;
+        employee.SkillsExpertise = request.SkillsExpertise;
+        employee.HealthCondition = request.HealthCondition;
+        employee.EmergencyContactName = request.EmergencyContactName;
+        employee.EmergencyContactNumber = request.EmergencyContactNumber;
+        employee.EmergencyContactAddress = request.EmergencyContactAddress;
+        employee.SssNumber = request.SssNumber;
+        employee.PhilHealthNumber = request.PhilHealthNumber;
+        employee.TinNumber = request.TinNumber;
 
         _db.EducationRecords.RemoveRange(employee.EducationRecords);
         employee.EducationRecords.Clear();
@@ -184,16 +221,24 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost("{id:int}/regenerate-pin")]
-    public async Task<ActionResult<RegeneratePinResponse>> RegeneratePin(int id)
+    public async Task<ActionResult<RegeneratePinResponse>> RegeneratePin(int id, RegeneratePinRequest? request)
     {
-        var account = await _db.EmployeeAccounts.FirstOrDefaultAsync(a => a.EmployeeId == id);
-        if (account is null) return NotFound();
+        var employee = await _db.Employees.Include(e => e.Account).FirstOrDefaultAsync(e => e.Id == id);
+        if (employee?.Account is null) return NotFound();
 
         var pin = _credentials.GeneratePin();
-        account.PinHash = _hasher.Hash(pin);
+        employee.Account.PinHash = _hasher.Hash(pin);
         await _db.SaveChangesAsync();
 
-        return Ok(new RegeneratePinResponse(account.Username, pin));
+        var delivery = await _pinDelivery.DeliverAsync(request?.Channel, employee, employee.Account.Username, pin);
+
+        return Ok(new RegeneratePinResponse(
+            employee.Account.Username,
+            pin,
+            delivery.Channel,
+            delivery.Destination,
+            delivery.Delivered,
+            delivery.Note));
     }
 
     [HttpGet("qr-tokens")]
@@ -294,5 +339,16 @@ public class EmployeesController : ControllerBase
 
         var refreshed = await EmployeeQuery().FirstAsync(e => e.Id == id);
         return Ok(EmployeeMapper.ToResponse(refreshed));
+    }
+
+    [HttpGet("{id:int}/export")]
+    public async Task<IActionResult> Export(int id)
+    {
+        var employee = await EmployeeQuery().FirstOrDefaultAsync(e => e.Id == id);
+        if (employee is null) return NotFound();
+
+        var bytes = EmployeeProfileDocumentGenerator.GenerateWord(employee);
+        return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            $"{employee.FullName.Replace(' ', '-')}-profile.docx");
     }
 }

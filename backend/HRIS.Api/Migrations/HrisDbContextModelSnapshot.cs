@@ -81,11 +81,31 @@ namespace HRIS.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CardOrientation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("IdCardTemplate")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LogoContentType")
+                        .HasColumnType("text");
+
+                    b.Property<byte[]>("LogoData")
+                        .HasColumnType("bytea");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TeamColor")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TeamColorSecondary")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -124,6 +144,28 @@ namespace HRIS.Api.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("DepartmentHistories");
+                });
+
+            modelBuilder.Entity("HRIS.Api.Models.DepartmentPosition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("DepartmentPositions");
                 });
 
             modelBuilder.Entity("HRIS.Api.Models.EducationRecord", b =>
@@ -173,6 +215,21 @@ namespace HRIS.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ChurchDistrict")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ChurchLocal")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ChurchPosition")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ChurchProvince")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ChurchRegion")
+                        .HasColumnType("text");
+
                     b.Property<string>("CivilStatus")
                         .IsRequired()
                         .HasColumnType("text");
@@ -191,12 +248,24 @@ namespace HRIS.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("EmergencyContactAddress")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmergencyContactName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmergencyContactNumber")
+                        .HasColumnType("text");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HealthCondition")
                         .HasColumnType("text");
 
                     b.Property<DateOnly>("HireDate")
@@ -209,13 +278,31 @@ namespace HRIS.Api.Migrations
                     b.Property<string>("MiddleName")
                         .HasColumnType("text");
 
+                    b.Property<string>("ParentReligion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhilHealthNumber")
+                        .HasColumnType("text");
+
                     b.Property<string>("PhotoContentType")
                         .HasColumnType("text");
 
                     b.Property<byte[]>("PhotoData")
                         .HasColumnType("bytea");
 
+                    b.Property<DateOnly?>("SabbathDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("SkillsExpertise")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SssNumber")
+                        .HasColumnType("text");
+
                     b.Property<string>("Suffix")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TinNumber")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -290,6 +377,68 @@ namespace HRIS.Api.Migrations
                     b.ToTable("EmploymentHistories");
                 });
 
+            modelBuilder.Entity("HRIS.Api.Models.NotificationSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("SemaphoreApiKeyProtected")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SemaphoreSenderName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SmtpFromEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SmtpFromName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SmtpHost")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SmtpPasswordProtected")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("SmtpPort")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("SmtpUseSsl")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SmtpUsername")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("NotificationSettings");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
+                });
+
             modelBuilder.Entity("HRIS.Api.Models.AttendanceRecord", b =>
                 {
                     b.HasOne("HRIS.Api.Models.Employee", "Employee")
@@ -318,6 +467,17 @@ namespace HRIS.Api.Migrations
                     b.Navigation("Department");
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("HRIS.Api.Models.DepartmentPosition", b =>
+                {
+                    b.HasOne("HRIS.Api.Models.Department", "Department")
+                        .WithMany("Positions")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("HRIS.Api.Models.EducationRecord", b =>
@@ -368,6 +528,8 @@ namespace HRIS.Api.Migrations
                     b.Navigation("DepartmentHistories");
 
                     b.Navigation("Employees");
+
+                    b.Navigation("Positions");
                 });
 
             modelBuilder.Entity("HRIS.Api.Models.Employee", b =>

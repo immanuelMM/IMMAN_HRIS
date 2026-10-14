@@ -4,10 +4,10 @@ import { PortalLayout } from '../../components/PortalLayout'
 import { Icon } from '../../components/Icon'
 import { Avatar } from '../../components/Avatar'
 import { IdCardModal } from '../../components/IdCardModal'
-import { deleteMyPhoto, getAttendance, getProfile, uploadMyPhoto } from '../../api/attendance'
+import { deleteMyPhoto, downloadMyProfileWord, getAttendance, getProfile, uploadMyPhoto } from '../../api/attendance'
 import type { AttendanceRecord, Profile } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
-import { todayLocalDateString } from '../../utils/dates'
+import { formatDurationSince, todayLocalDateString } from '../../utils/dates'
 
 export function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -20,6 +20,8 @@ export function ProfilePage() {
   const [photoError, setPhotoError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [showIdCard, setShowIdCard] = useState(false)
+  const [downloadingWord, setDownloadingWord] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([getProfile(), getAttendance()])
@@ -74,6 +76,18 @@ export function ProfilePage() {
     document.title = previousTitle
   }
 
+  async function handleDownloadWord() {
+    setDownloadingWord(true)
+    setDownloadError(null)
+    try {
+      await downloadMyProfileWord()
+    } catch (err) {
+      setDownloadError(extractErrorMessage(err, 'Failed to download Word document.'))
+    } finally {
+      setDownloadingWord(false)
+    }
+  }
+
   if (loading) {
     return (
       <PortalLayout>
@@ -105,7 +119,11 @@ export function ProfilePage() {
         <button type="button" className="btn btn-primary" onClick={handleDownloadPdf}>
           <Icon name="download" size={16} /> Download PDF
         </button>
+        <button type="button" className="btn btn-ghost" onClick={handleDownloadWord} disabled={downloadingWord}>
+          <Icon name="download" size={16} /> {downloadingWord ? 'Downloading...' : 'Download Word'}
+        </button>
       </div>
+      {downloadError && <p className="form-error no-print">{downloadError}</p>}
       <div className="resume-paper">
         <div className="resume-header">
           <div className="resume-header-main">
@@ -174,6 +192,84 @@ export function ProfilePage() {
         <div className="resume-body">
           <section>
             <h2 className="resume-section-title">
+              <Icon name="users" size={15} /> Personal Information
+            </h2>
+            <dl className="detail-list">
+              <dt>Date of Birth</dt>
+              <dd>{profile.dateOfBirth}</dd>
+              <dt>Gender</dt>
+              <dd>{profile.gender}</dd>
+              <dt>Civil Status</dt>
+              <dd>{profile.civilStatus}</dd>
+            </dl>
+          </section>
+
+          <section>
+            <h2 className="resume-section-title">
+              <Icon name="building" size={15} /> Church Affiliation
+            </h2>
+            <dl className="detail-list">
+              <dt>Local</dt>
+              <dd>{profile.churchLocal || '—'}</dd>
+              <dt>District</dt>
+              <dd>{profile.churchDistrict || '—'}</dd>
+              <dt>Province</dt>
+              <dd>{profile.churchProvince || '—'}</dd>
+              <dt>Region</dt>
+              <dd>{profile.churchRegion || '—'}</dd>
+              <dt>Position / Designation</dt>
+              <dd>{profile.churchPosition || '—'}</dd>
+              <dt>Parent Religion</dt>
+              <dd>{profile.parentReligion || '—'}</dd>
+              <dt>Sabbath Date</dt>
+              <dd>
+                {profile.sabbathDate ? `${profile.sabbathDate} (${formatDurationSince(profile.sabbathDate)})` : '—'}
+              </dd>
+            </dl>
+          </section>
+
+          <section>
+            <h2 className="resume-section-title">
+              <Icon name="briefcase" size={15} /> Skills &amp; Health
+            </h2>
+            <dl className="detail-list">
+              <dt>Skills / Expertise</dt>
+              <dd>{profile.skillsExpertise || '—'}</dd>
+              <dt>Health Condition</dt>
+              <dd>{profile.healthCondition || '—'}</dd>
+            </dl>
+          </section>
+
+          <section>
+            <h2 className="resume-section-title">
+              <Icon name="phone" size={15} /> Emergency Contact
+            </h2>
+            <dl className="detail-list">
+              <dt>Name</dt>
+              <dd>{profile.emergencyContactName || '—'}</dd>
+              <dt>Contact No.</dt>
+              <dd>{profile.emergencyContactNumber || '—'}</dd>
+              <dt>Address</dt>
+              <dd>{profile.emergencyContactAddress || '—'}</dd>
+            </dl>
+          </section>
+
+          <section>
+            <h2 className="resume-section-title">
+              <Icon name="id-card" size={15} /> Government IDs
+            </h2>
+            <dl className="detail-list">
+              <dt>SSS No.</dt>
+              <dd>{profile.sssNumber || '—'}</dd>
+              <dt>PhilHealth No.</dt>
+              <dd>{profile.philHealthNumber || '—'}</dd>
+              <dt>TIN No.</dt>
+              <dd>{profile.tinNumber || '—'}</dd>
+            </dl>
+          </section>
+
+          <section>
+            <h2 className="resume-section-title">
               <Icon name="briefcase" size={15} /> Experience
             </h2>
             {profile.employmentHistories.length === 0 ? (
@@ -210,6 +306,7 @@ export function ProfilePage() {
                     <div className="timeline-org">{d.departmentName}</div>
                     <div className="timeline-date">
                       {d.startDate} – {d.endDate ?? 'Present'}
+                      <span className="timeline-duration">{formatDurationSince(d.startDate, d.endDate)}</span>
                     </div>
                   </div>
                 ))}

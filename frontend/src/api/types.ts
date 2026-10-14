@@ -1,5 +1,8 @@
 export type Role = 'Admin' | 'Employee'
 
+export type IdCardTemplate = 'wave' | 'arch' | 'chevron' | 'stripe'
+export type CardOrientation = 'horizontal' | 'vertical'
+
 export type Gender = 'Male' | 'Female' | 'Other'
 export type CivilStatus = 'Single' | 'Married' | 'Widowed' | 'Separated'
 export type EducationLevel = 'Secondary' | 'Tertiary' | 'Vocational'
@@ -53,7 +56,25 @@ export interface DepartmentHistoryRecord {
   endDate: string | null
 }
 
-export interface Employee {
+export interface ChurchAndPersonalFields {
+  churchLocal: string | null
+  churchDistrict: string | null
+  churchProvince: string | null
+  churchRegion: string | null
+  churchPosition: string | null
+  parentReligion: string | null
+  sabbathDate: string | null
+  skillsExpertise: string | null
+  healthCondition: string | null
+  emergencyContactName: string | null
+  emergencyContactNumber: string | null
+  emergencyContactAddress: string | null
+  sssNumber: string | null
+  philHealthNumber: string | null
+  tinNumber: string | null
+}
+
+export interface Employee extends ChurchAndPersonalFields {
   id: number
   firstName: string
   middleName: string | null
@@ -69,6 +90,11 @@ export interface Employee {
   hireDate: string
   currentDepartmentId: number | null
   currentDepartmentName: string | null
+  currentDepartmentColor: string | null
+  currentDepartmentColorSecondary: string | null
+  currentDepartmentHasLogo: boolean
+  currentDepartmentIdCardTemplate: IdCardTemplate
+  currentDepartmentCardOrientation: CardOrientation
   username: string | null
   hasPhoto: boolean
   educationRecords: EducationRecord[]
@@ -76,7 +102,7 @@ export interface Employee {
   departmentHistories: DepartmentHistoryRecord[]
 }
 
-export interface CreateEmployeeRequest {
+export interface CreateEmployeeRequest extends ChurchAndPersonalFields {
   firstName: string
   middleName: string | null
   lastName: string
@@ -94,7 +120,7 @@ export interface CreateEmployeeRequest {
   employmentHistories: EmploymentHistoryInput[]
 }
 
-export interface UpdateEmployeeRequest {
+export interface UpdateEmployeeRequest extends ChurchAndPersonalFields {
   firstName: string
   middleName: string | null
   lastName: string
@@ -116,9 +142,20 @@ export interface CreateEmployeeResponse {
   generatedPin: string
 }
 
+export type PinDeliveryChannel = 'phone' | 'email'
+
 export interface RegeneratePinResponse {
   username: string
   newPin: string
+  deliveryChannel: PinDeliveryChannel | null
+  deliveryDestination: string | null
+  delivered: boolean
+  deliveryNote: string
+}
+
+export interface DepartmentPosition {
+  id: number
+  title: string
 }
 
 export interface Department {
@@ -126,6 +163,12 @@ export interface Department {
   name: string
   description: string | null
   employeeCount: number
+  teamColor: string | null
+  teamColorSecondary: string | null
+  hasLogo: boolean
+  idCardTemplate: IdCardTemplate
+  cardOrientation: CardOrientation
+  positions: DepartmentPosition[]
 }
 
 export interface AttendanceRecord {
@@ -158,14 +201,23 @@ export interface AttendanceMonitoringResponse {
   weeklySummaries: WeeklySummary[]
 }
 
-export interface Profile {
+export interface Profile extends ChurchAndPersonalFields {
   id: number
   fullName: string
   email: string
   contactNumber: string
   address: string
   hireDate: string
+  dateOfBirth: string
+  gender: Gender
+  civilStatus: CivilStatus
+  currentDepartmentId: number | null
   currentDepartmentName: string | null
+  currentDepartmentColor: string | null
+  currentDepartmentColorSecondary: string | null
+  currentDepartmentHasLogo: boolean
+  currentDepartmentIdCardTemplate: IdCardTemplate
+  currentDepartmentCardOrientation: CardOrientation
   hasPhoto: boolean
   educationRecords: EducationRecord[]
   employmentHistories: EmploymentHistoryRecord[]

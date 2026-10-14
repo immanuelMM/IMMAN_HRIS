@@ -2,6 +2,8 @@ using System.Text;
 using HRIS.Api.Data;
 using HRIS.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
@@ -51,10 +53,20 @@ builder.Services.AddSwaggerGen(options =>
 var connectionString = ResolvePostgresConnectionString(builder.Configuration, builder.Environment);
 builder.Services.AddDbContext<HrisDbContext>(options => options.UseNpgsql(connectionString));
 
+// Data Protection keys must live in Postgres (not the container's local
+// disk) so encrypted settings (SMTP password, SMS API key) survive Render's
+// ephemeral filesystem across redeploys.
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<HrisDbContext>()
+    .SetApplicationName("HRIS");
+
 builder.Services.AddScoped<CredentialGenerator>();
 builder.Services.AddSingleton<CredentialHasher>();
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddSingleton<EmployeeQrService>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<NotificationSettingsService>();
+builder.Services.AddScoped<PinDeliveryService>();
 
 builder.Services.AddAuthentication(options =>
 {
