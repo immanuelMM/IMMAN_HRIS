@@ -67,6 +67,21 @@ interface Guides {
   h: number[]
 }
 
+type MobileTab = 'add' | 'edit' | 'layers'
+
+const MOBILE_QUERY = '(max-width: 760px)'
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY)
+    const onChange = () => setMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return mobile
+}
+
 const SNAP = 5
 const MIN_SIZE = 4
 
@@ -119,6 +134,8 @@ export function IdCardDesignerPage() {
   const [zoom, setZoom] = useState(2)
   const [showFieldNames, setShowFieldNames] = useState(false)
   const [guides, setGuides] = useState<Guides>({ v: [], h: [] })
+  const [mobileTab, setMobileTab] = useState<MobileTab>('add')
+  const isMobile = useIsMobile()
 
   const designRef = useRef<IdCardDesign | null>(null)
   const past = useRef<IdCardDesign[]>([])
@@ -204,8 +221,10 @@ export function IdCardDesignerPage() {
     const box = scrollRef.current
     if (!box || !orientation) return
     const { w, h } = CARD_SIZE[orientation]
-    const pad = window.innerWidth < 760 ? 40 : 80
-    const fit = Math.min((box.clientWidth - pad) / w, (window.innerHeight * 0.7) / h, 3)
+    const mobile = window.matchMedia(MOBILE_QUERY).matches
+    // On phones the card stays pinned above the tools, so it gets a smaller share of the height.
+    const pad = mobile ? 30 : 80
+    const fit = Math.min((box.clientWidth - pad) / w, (window.innerHeight * (mobile ? 0.38 : 0.7)) / h, 3)
     setZoom(Math.max(0.5, Math.floor(fit * 20) / 20))
   }, [orientation])
 
@@ -237,6 +256,7 @@ export function IdCardDesignerPage() {
     const next = withElements((els) => [...els, el])
     if (next) commit(next)
     setSelectedId(el.id)
+    setMobileTab('edit')
   }
 
   const deleteElement = useCallback(
@@ -406,6 +426,7 @@ export function IdCardDesignerPage() {
     if (e.button !== 0 || editingId === el.id) return
     e.stopPropagation()
     setSelectedId(el.id)
+    if (mobileTab === 'add') setMobileTab('edit')
     if (editingId) setEditingId(null)
     if (el.locked || !designRef.current) return
     dragRef.current = { mode: 'move', id: el.id, startX: e.clientX, startY: e.clientY, orig: el, before: designRef.current, moved: false }
@@ -654,7 +675,7 @@ export function IdCardDesignerPage() {
         <p className="designer-hint">Saved {savedAt.toLocaleTimeString()} · this department now uses the custom ID design.</p>
       )}
 
-      <div className="designer-layout">
+      <div className="designer-layout" data-tab={mobileTab}>
         {/* ---------- Left: add elements ---------- */}
         <aside className="designer-panel designer-tools">
           <h3 className="designer-panel-title">Text</h3>
@@ -718,11 +739,11 @@ export function IdCardDesignerPage() {
               </button>
             </div>
             <div className="designer-toolbar-group">
-              <button type="button" className="btn btn-ghost btn-small" onClick={undo} disabled={historyCounts.undo === 0} title="Undo (Ctrl/Cmd+Z)">
-                Undo
+              <button type="button" className="btn btn-ghost btn-small" onClick={undo} disabled={historyCounts.undo === 0} title="Undo (Ctrl/Cmd+Z)" aria-label="Undo">
+                ↶<span className="designer-btn-text"> Undo</span>
               </button>
-              <button type="button" className="btn btn-ghost btn-small" onClick={redo} disabled={historyCounts.redo === 0} title="Redo (Ctrl/Cmd+Shift+Z)">
-                Redo
+              <button type="button" className="btn btn-ghost btn-small" onClick={redo} disabled={historyCounts.redo === 0} title="Redo (Ctrl/Cmd+Shift+Z)" aria-label="Redo">
+                ↷<span className="designer-btn-text"> Redo</span>
               </button>
             </div>
             <div className="designer-toolbar-group">
@@ -738,7 +759,7 @@ export function IdCardDesignerPage() {
               </button>
             </div>
             <label className="designer-check">
-              <input type="checkbox" checked={showFieldNames} onChange={(e) => setShowFieldNames(e.target.checked)} /> Show field names
+              <input type="checkbox" checked={showFieldNames} onChange={(e) => setShowFieldNames(e.target.checked)} /> Field names
             </label>
           </div>
 
@@ -805,298 +826,356 @@ export function IdCardDesignerPage() {
               </div>
             </div>
           </div>
-          <p className="designer-hint">
-            Drag to move · drag handles to resize (Shift keeps ratio) · double-click text to edit · arrows nudge · Alt disables snapping · Delete removes
-          </p>
+          {selected ? (
+            <div className="designer-quickbar">
+              <span className="designer-quickbar-label">{layerLabel(selected)}</span>
+              {selected.type === 'text' && !selected.locked && (
+                <button type="button" onClick={() => setEditingId(selected.id)}>
+                  ✎ Edit text
+                </button>
+              )}
+              <button type="button" onClick={() => { setMobileTab('edit') }} className="designer-quickbar-mobile">
+                ⚙ Style
+              </button>
+              <button type="button" onClick={() => duplicateElement(selected)}>
+                ⧉ Copy
+              </button>
+              <button type="button" onClick={() => reorder(selected.id, 'forward')} title="Bring forward">
+                ▲
+              </button>
+              <button type="button" onClick={() => reorder(selected.id, 'backward')} title="Send backward">
+                ▼
+              </button>
+              <button type="button" onClick={() => updateElement(selected.id, { locked: !selected.locked })} title={selected.locked ? 'Unlock' : 'Lock'}>
+                {selected.locked ? '🔒' : '🔓'}
+              </button>
+              <button type="button" className="danger" onClick={() => deleteElement(selected.id)} title="Delete">
+                🗑
+              </button>
+              <button type="button" onClick={() => setSelectedId(null)} title="Done">
+                ✓ Done
+              </button>
+            </div>
+          ) : (
+            <p className="designer-hint">
+              {isMobile
+                ? 'Tap an item to select it · drag to move · pull the round handles to resize · top handle rotates'
+                : 'Drag to move · drag handles to resize (Shift keeps ratio) · double-click text to edit · arrows nudge · Alt disables snapping · Delete removes'}
+            </p>
+          )}
+
+          {/* ---------- Mobile tab bar ---------- */}
+          <nav className="designer-tabs" aria-label="Designer panels">
+            {(
+              [
+                ['add', '＋', 'Add'],
+                ['edit', '✎', selected ? 'Edit' : 'Card'],
+                ['layers', '☰', 'Layers'],
+              ] as const
+            ).map(([tab, icon, label]) => (
+              <button key={tab} type="button" className={mobileTab === tab ? 'active' : ''} onClick={() => setMobileTab(tab)}>
+                <span aria-hidden="true">{icon}</span> {label}
+              </button>
+            ))}
+          </nav>
         </section>
 
+
         {/* ---------- Right: properties + layers ---------- */}
-        <aside className="designer-panel designer-props">
-          {selected ? (
-            <ElementProperties
-              key={selected.id}
-              el={selected}
-              swatches={swatches}
-              onChange={(patch, key) => updateElement(selected.id, patch, key ? `${selected.id}-${key}` : undefined)}
-              onDelete={() => deleteElement(selected.id)}
-              onDuplicate={() => duplicateElement(selected)}
-              onReorder={(dir) => reorder(selected.id, dir)}
-              onAlign={(where) => alignToCard(selected, where)}
-              onReplaceImage={() => replaceImageRef.current?.click()}
+        <div className="designer-right">
+          <aside className="designer-panel designer-props">
+            {selected ? (
+              <ElementProperties
+                key={selected.id}
+                el={selected}
+                swatches={swatches}
+                onChange={(patch, key) => updateElement(selected.id, patch, key ? `${selected.id}-${key}` : undefined)}
+                onDelete={() => deleteElement(selected.id)}
+                onDuplicate={() => duplicateElement(selected)}
+                onReorder={(dir) => reorder(selected.id, dir)}
+                onAlign={(where) => alignToCard(selected, where)}
+                onReplaceImage={() => replaceImageRef.current?.click()}
+              />
+            ) : (
+              <CardProperties
+                design={design}
+                side={side}
+                swatches={swatches}
+                onOrientation={changeOrientation}
+                onBackground={updateBackground}
+                onCornerRadius={(r) => updateDesign({ cornerRadius: r }, 'corner')}
+                onReset={resetToStarter}
+                onCopyFrontToBack={copyFrontToBack}
+              />
+            )}
+            <input
+              ref={replaceImageRef}
+              type="file"
+              accept="image/*"
+              className="hidden-file-input"
+              onChange={(e) => selected && handleImageUpload(e, selected.id)}
             />
-          ) : (
-            <CardProperties
-              design={design}
-              side={side}
-              swatches={swatches}
-              onOrientation={changeOrientation}
-              onBackground={updateBackground}
-              onCornerRadius={(r) => updateDesign({ cornerRadius: r }, 'corner')}
-              onReset={resetToStarter}
-              onCopyFrontToBack={copyFrontToBack}
-            />
-          )}
-          <input
-            ref={replaceImageRef}
-            type="file"
-            accept="image/*"
-            className="hidden-file-input"
-            onChange={(e) => selected && handleImageUpload(e, selected.id)}
-          />
 
-          <h3 className="designer-panel-title">Layers ({side})</h3>
-          <div className="designer-layers">
-            {elements.length === 0 && <span className="resume-empty">Nothing on this side yet.</span>}
-            {[...elements].reverse().map((el) => (
-              <div
-                key={el.id}
-                className={`designer-layer ${el.id === selectedId ? 'active' : ''} ${el.hidden ? 'is-hidden' : ''}`}
-                onClick={() => setSelectedId(el.id)}
-              >
-                <span className="designer-layer-name">{layerLabel(el)}</span>
-                <button type="button" title={el.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); updateElement(el.id, { hidden: !el.hidden }) }}>
-                  {el.hidden ? '○' : '●'}
-                </button>
-                <button type="button" title={el.locked ? 'Unlock' : 'Lock'} onClick={(e) => { e.stopPropagation(); updateElement(el.id, { locked: !el.locked }) }}>
-                  {el.locked ? '🔒' : '🔓'}
-                </button>
-              </div>
-            ))}
+          </aside>
+
+          <aside className="designer-panel designer-layers-panel">
+            <h3 className="designer-panel-title">Layers ({side})</h3>
+            <div className="designer-layers">
+              {elements.length === 0 && <span className="resume-empty">Nothing on this side yet.</span>}
+              {[...elements].reverse().map((el) => (
+                <div
+                  key={el.id}
+                  className={`designer-layer ${el.id === selectedId ? 'active' : ''} ${el.hidden ? 'is-hidden' : ''}`}
+                  onClick={() => {
+                    setSelectedId(el.id)
+                    if (isMobile) setMobileTab('edit')
+                  }}
+                >
+                  <span className="designer-layer-name">{layerLabel(el)}</span>
+                  <button type="button" title={el.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); updateElement(el.id, { hidden: !el.hidden }) }}>
+                    {el.hidden ? '○' : '●'}
+                  </button>
+                  <button type="button" title={el.locked ? 'Unlock' : 'Lock'} onClick={(e) => { e.stopPropagation(); updateElement(el.id, { locked: !el.locked }) }}>
+                    {el.locked ? '🔒' : '🔓'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </aside>
           </div>
-        </aside>
-      </div>
-    </AdminLayout>
-  )
-}
-
-function layerLabel(el: DesignElement): string {
-  if (el.name) return el.name
-  switch (el.type) {
-    case 'text':
-      return `T  ${el.text.slice(0, 28) || '(empty)'}`
-    case 'shape':
-      return `▢  ${SHAPES.find((s) => s.kind === el.shape)?.label ?? 'Shape'}`
-    case 'photo':
-      return '👤  Employee Photo'
-    case 'logo':
-      return '🏢  Department Logo'
-    case 'qr':
-      return '▦  Attendance QR'
-    default:
-      return '🖼  Image'
+        </div>
+      </AdminLayout>
+    )
   }
-}
 
-function InlineTextEditor({ el, onDone }: { el: TextElement; onDone: (text: string) => void }) {
-  const [value, setValue] = useState(el.text)
-  return (
-    <textarea
-      className="designer-inline-text"
-      autoFocus
-      value={value}
-      onPointerDown={(e) => e.stopPropagation()}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={() => onDone(value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
-          e.preventDefault()
-          onDone(value)
-        }
-      }}
-      style={{
-        fontFamily: el.fontFamily,
-        fontSize: el.fontSize,
-        fontWeight: el.fontWeight,
-        fontStyle: el.italic ? 'italic' : 'normal',
-        textAlign: el.align,
-        color: el.color,
-        letterSpacing: el.letterSpacing,
-        lineHeight: el.lineHeight,
-      }}
-    />
-  )
-}
+  function layerLabel(el: DesignElement): string {
+    if (el.name) return el.name
+    switch (el.type) {
+      case 'text':
+        return `T  ${el.text.slice(0, 28) || '(empty)'}`
+      case 'shape':
+        return `▢  ${SHAPES.find((s) => s.kind === el.shape)?.label ?? 'Shape'}`
+      case 'photo':
+        return '👤  Employee Photo'
+      case 'logo':
+        return '🏢  Department Logo'
+      case 'qr':
+        return '▦  Attendance QR'
+      default:
+        return '🖼  Image'
+    }
+  }
 
-// ---------- Property controls ----------
-
-function NumField({
-  label,
-  value,
-  onChange,
-  step = 1,
-  min,
-  max,
-}: {
-  label: string
-  value: number
-  onChange: (v: number) => void
-  step?: number
-  min?: number
-  max?: number
-}) {
-  return (
-    <label className="designer-field">
-      <span>{label}</span>
-      <input
-        type="number"
-        value={Number.isFinite(value) ? round(value) : 0}
-        step={step}
-        min={min}
-        max={max}
-        onChange={(e) => {
-          const v = parseFloat(e.target.value)
-          if (!Number.isNaN(v)) onChange(min !== undefined ? Math.max(min, max !== undefined ? Math.min(max, v) : v) : v)
+  function InlineTextEditor({ el, onDone }: { el: TextElement; onDone: (text: string) => void }) {
+    const [value, setValue] = useState(el.text)
+    return (
+      <textarea
+        className="designer-inline-text"
+        autoFocus
+        value={value}
+        onPointerDown={(e) => e.stopPropagation()}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={() => onDone(value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
+            e.preventDefault()
+            onDone(value)
+          }
+        }}
+        style={{
+          fontFamily: el.fontFamily,
+          fontSize: el.fontSize,
+          fontWeight: el.fontWeight,
+          fontStyle: el.italic ? 'italic' : 'normal',
+          textAlign: el.align,
+          color: el.color,
+          letterSpacing: el.letterSpacing,
+          lineHeight: el.lineHeight,
         }}
       />
-    </label>
-  )
-}
+    )
+  }
 
-function RangeField({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  suffix = '',
-}: {
-  label: string
-  value: number
-  onChange: (v: number) => void
-  min: number
-  max: number
-  step?: number
-  suffix?: string
-}) {
-  return (
-    <label className="designer-field designer-field-range">
-      <span>
-        {label} <em>{round(value)}{suffix}</em>
-      </span>
-      <input type="range" value={value} min={min} max={max} step={step} onChange={(e) => onChange(parseFloat(e.target.value))} />
-    </label>
-  )
-}
+  // ---------- Property controls ----------
 
-function ColorField({
-  label,
-  value,
-  onChange,
-  swatches,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  swatches: string[]
-}) {
-  const [text, setText] = useState(value)
-  useEffect(() => setText(value), [value])
-  return (
-    <div className="designer-field designer-color">
-      <span>{label}</span>
-      <div className="designer-color-row">
-        <input type="color" value={isHex(value) ? value : '#ffffff'} onChange={(e) => onChange(e.target.value)} />
+  function NumField({
+    label,
+    value,
+    onChange,
+    step = 1,
+    min,
+    max,
+  }: {
+    label: string
+    value: number
+    onChange: (v: number) => void
+    step?: number
+    min?: number
+    max?: number
+  }) {
+    return (
+      <label className="designer-field">
+        <span>{label}</span>
         <input
-          className="designer-hex"
-          value={text}
+          type="number"
+          value={Number.isFinite(value) ? round(value) : 0}
+          step={step}
+          min={min}
+          max={max}
           onChange={(e) => {
-            setText(e.target.value)
-            if (isHex(e.target.value)) onChange(e.target.value)
+            const v = parseFloat(e.target.value)
+            if (!Number.isNaN(v)) onChange(min !== undefined ? Math.max(min, max !== undefined ? Math.min(max, v) : v) : v)
           }}
         />
-      </div>
-      <div className="designer-swatches">
-        {swatches.map((c) => (
-          <button key={c} type="button" style={{ background: c }} title={c} onClick={() => onChange(c)} />
-        ))}
-      </div>
-    </div>
-  )
-}
+      </label>
+    )
+  }
 
-function FillField({
-  label,
-  fill,
-  onChange,
-  swatches,
-  allowNone,
-}: {
-  label: string
-  fill: Fill
-  onChange: (f: Fill, key?: string) => void
-  swatches: string[]
-  allowNone?: boolean
-}) {
-  const none = fill.color === 'transparent'
-  return (
-    <>
-      {allowNone && (
-        <label className="designer-check">
-          <input type="checkbox" checked={none} onChange={(e) => onChange({ ...fill, color: e.target.checked ? 'transparent' : swatches[0] ?? '#0d9488', color2: null })} /> No fill
-        </label>
-      )}
-      {!none && (
-        <>
-          <ColorField label={fill.color2 ? `${label} (start)` : label} value={fill.color} swatches={swatches} onChange={(c) => onChange({ ...fill, color: c }, 'fill')} />
+  function RangeField({
+    label,
+    value,
+    onChange,
+    min,
+    max,
+    step = 1,
+    suffix = '',
+  }: {
+    label: string
+    value: number
+    onChange: (v: number) => void
+    min: number
+    max: number
+    step?: number
+    suffix?: string
+  }) {
+    return (
+      <label className="designer-field designer-field-range">
+        <span>
+          {label} <em>{round(value)}{suffix}</em>
+        </span>
+        <input type="range" value={value} min={min} max={max} step={step} onChange={(e) => onChange(parseFloat(e.target.value))} />
+      </label>
+    )
+  }
+
+  function ColorField({
+    label,
+    value,
+    onChange,
+    swatches,
+  }: {
+    label: string
+    value: string
+    onChange: (v: string) => void
+    swatches: string[]
+  }) {
+    const [text, setText] = useState(value)
+    useEffect(() => setText(value), [value])
+    return (
+      <div className="designer-field designer-color">
+        <span>{label}</span>
+        <div className="designer-color-row">
+          <input type="color" value={isHex(value) ? value : '#ffffff'} onChange={(e) => onChange(e.target.value)} />
+          <input
+            className="designer-hex"
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value)
+              if (isHex(e.target.value)) onChange(e.target.value)
+            }}
+          />
+        </div>
+        <div className="designer-swatches">
+          {swatches.map((c) => (
+            <button key={c} type="button" style={{ background: c }} title={c} onClick={() => onChange(c)} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  function FillField({
+    label,
+    fill,
+    onChange,
+    swatches,
+    allowNone,
+  }: {
+    label: string
+    fill: Fill
+    onChange: (f: Fill, key?: string) => void
+    swatches: string[]
+    allowNone?: boolean
+  }) {
+    const none = fill.color === 'transparent'
+    return (
+      <>
+        {allowNone && (
           <label className="designer-check">
-            <input
-              type="checkbox"
-              checked={!!fill.color2}
-              onChange={(e) => onChange({ ...fill, color2: e.target.checked ? swatches[1] ?? '#7c3aed' : null, angle: fill.angle ?? 135 })}
-            />{' '}
-            Gradient
+            <input type="checkbox" checked={none} onChange={(e) => onChange({ ...fill, color: e.target.checked ? 'transparent' : swatches[0] ?? '#0d9488', color2: null })} /> No fill
           </label>
-          {fill.color2 && (
-            <>
-              <ColorField label={`${label} (end)`} value={fill.color2} swatches={swatches} onChange={(c) => onChange({ ...fill, color2: c }, 'fill2')} />
-              <RangeField label="Gradient angle" value={fill.angle ?? 135} min={0} max={360} suffix="°" onChange={(v) => onChange({ ...fill, angle: v }, 'angle')} />
-            </>
-          )}
-        </>
-      )}
-    </>
-  )
-}
+        )}
+        {!none && (
+          <>
+            <ColorField label={fill.color2 ? `${label} (start)` : label} value={fill.color} swatches={swatches} onChange={(c) => onChange({ ...fill, color: c }, 'fill')} />
+            <label className="designer-check">
+              <input
+                type="checkbox"
+                checked={!!fill.color2}
+                onChange={(e) => onChange({ ...fill, color2: e.target.checked ? swatches[1] ?? '#7c3aed' : null, angle: fill.angle ?? 135 })}
+              />{' '}
+              Gradient
+            </label>
+            {fill.color2 && (
+              <>
+                <ColorField label={`${label} (end)`} value={fill.color2} swatches={swatches} onChange={(c) => onChange({ ...fill, color2: c }, 'fill2')} />
+                <RangeField label="Gradient angle" value={fill.angle ?? 135} min={0} max={360} suffix="°" onChange={(v) => onChange({ ...fill, angle: v }, 'angle')} />
+              </>
+            )}
+          </>
+        )}
+      </>
+    )
+  }
 
-function ToggleButton({ active, onClick, children, title }: { active: boolean; onClick: () => void; children: React.ReactNode; title: string }) {
-  return (
-    <button type="button" className={`designer-toggle ${active ? 'active' : ''}`} onClick={onClick} title={title}>
-      {children}
-    </button>
-  )
-}
+  function ToggleButton({ active, onClick, children, title }: { active: boolean; onClick: () => void; children: React.ReactNode; title: string }) {
+    return (
+      <button type="button" className={`designer-toggle ${active ? 'active' : ''}`} onClick={onClick} title={title}>
+        {children}
+      </button>
+    )
+  }
 
-function ElementProperties({
-  el,
-  swatches,
-  onChange,
-  onDelete,
-  onDuplicate,
-  onReorder,
-  onAlign,
-  onReplaceImage,
-}: {
-  el: DesignElement
-  swatches: string[]
-  onChange: (patch: Partial<DesignElement>, coalesceKey?: string) => void
-  onDelete: () => void
-  onDuplicate: () => void
-  onReorder: (dir: 'front' | 'back' | 'forward' | 'backward') => void
-  onAlign: (where: 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom') => void
-  onReplaceImage: () => void
-}) {
-  return (
-    <div className="designer-props-body">
-      <div className="designer-props-head">
-        <h3 className="designer-panel-title">{layerLabel({ ...el, name: undefined } as DesignElement).replace(/^\S+\s+/, '') || 'Element'}</h3>
-        <div className="designer-toolbar-group">
-          <button type="button" className="btn btn-ghost btn-small" onClick={onDuplicate} title="Duplicate (Ctrl/Cmd+D)">
-            Duplicate
-          </button>
-          <button type="button" className="btn btn-danger btn-small" onClick={onDelete} title="Delete">
-            Delete
-          </button>
+  function ElementProperties({
+    el,
+    swatches,
+    onChange,
+    onDelete,
+    onDuplicate,
+    onReorder,
+    onAlign,
+    onReplaceImage,
+  }: {
+    el: DesignElement
+    swatches: string[]
+    onChange: (patch: Partial<DesignElement>, coalesceKey?: string) => void
+    onDelete: () => void
+    onDuplicate: () => void
+    onReorder: (dir: 'front' | 'back' | 'forward' | 'backward') => void
+    onAlign: (where: 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom') => void
+    onReplaceImage: () => void
+  }) {
+    return (
+      <div className="designer-props-body">
+        <div className="designer-props-head">
+          <h3 className="designer-panel-title">{layerLabel({ ...el, name: undefined } as DesignElement).replace(/^\S+\s+/, '') || 'Element'}</h3>
+          <div className="designer-toolbar-group">
+            <button type="button" className="btn btn-ghost btn-small" onClick={onDuplicate} title="Duplicate (Ctrl/Cmd+D)">
+              Duplicate
+            </button>
+            <button type="button" className="btn btn-danger btn-small" onClick={onDelete} title="Delete">
+              Delete
+            </button>
         </div>
       </div>
 
