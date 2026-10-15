@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b2f3a"/>
+      <stop offset="0.55" stop-color="#0f5f5a"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#ffffff" fill-opacity="0.07"/>
+    </pattern>
+  </defs>
+
+  <!-- Base -->
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" fill="url(#dots)"/>
+  <circle cx="1340" cy="170" r="420" fill="url(#glowB)"/>
+  <circle cx="210" cy="880" r="460" fill="url(#glowA)"/>
+
+  <!-- Soft waves -->
+  <path d="M0 760 C 300 680 520 860 820 790 S 1350 660 1600 730 V1000 H0 Z" fill="#ffffff" fill-opacity="0.04"/>
+  <path d="M0 850 C 340 780 600 940 900 870 S 1380 780 1600 830 V1000 H0 Z" fill="#ffffff" fill-opacity="0.05"/>
+
+  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Org chart (top left) -->
+    <g stroke-opacity="0.22" stroke-width="2.5" transform="translate(120 110)">
+      <rect x="120" y="0" width="90" height="48" rx="10"/>
+      <circle cx="148" cy="24" r="10"/>
+      <path d="M166 18h30M166 30h22"/>
+      <path d="M165 48v34M40 82h250M40 82v24M165 82v24M290 82v24"/>
+      <rect x="0" y="106" width="80" height="42" rx="9"/>
+      <circle cx="22" cy="127" r="8"/>
+      <rect x="125" y="106" width="80" height="42" rx="9"/>
+      <circle cx="147" cy="127" r="8"/>
+      <rect x="250" y="106" width="80" height="42" rx="9"/>
+      <circle cx="272" cy="127" r="8"/>
+      <path d="M36 122h30M36 132h20M161 122h30M161 132h20M286 122h30M286 132h20"/>
+    </g>
+
+    <!-- Employee ID badge (left, tilted) -->
+    <g stroke-opacity="0.3" stroke-width="3" transform="translate(150 430) rotate(-12)">
+      <path d="M95 -40v40M125 -40v40"/>
+      <rect x="80" y="-8" width="60" height="16" rx="4"/>
+      <rect x="0" y="0" width="220" height="300" rx="22"/>
+      <path d="M0 70h220"/>
+      <circle cx="110" cy="135" r="38"/>
+      <path d="M110 120a12 12 0 1 0 0.1 0M86 165c6-16 42-16 48 0"/>
+      <path d="M50 200h120M70 225h80M60 255h100"/>
+    </g>
+
+    <!-- Second badge (right) with QR -->
+    <g stroke-opacity="0.26" stroke-width="3" transform="translate(1250 520) rotate(10)">
+      <rect x="0" y="0" width="210" height="140" rx="18"/>
+      <rect x="18" y="22" width="60" height="70" rx="10"/>
+      <path d="M96 34h90M96 56h70M96 78h80M18 114h80"/>
+      <rect x="140" y="98" width="36" height="30" rx="4"/>
+      <path d="M148 106h6v6h-6zM162 106h6v6h-6zM148 118h6M162 118h6v4"/>
+    </g>
+
+    <!-- Clock (top right) -->
+    <g stroke-opacity="0.28" stroke-width="3" transform="translate(1330 160)">
+      <circle cx="0" cy="0" r="78"/>
+      <circle cx="0" cy="0" r="66" stroke-opacity="0.5"/>
+      <path d="M0 -42V0l30 20"/>
+      <path d="M0 -66v10M66 0h-10M0 66v-10M-66 0h10"/>
+    </g>
+
+    <!-- Calendar (upper middle-right) -->
+    <g stroke-opacity="0.22" stroke-width="2.5" transform="translate(1010 90)">
+      <rect x="0" y="0" width="170" height="150" rx="16"/>
+      <path d="M0 40h170M40 -12v24M130 -12v24"/>
+      <path d="M22 66h18M62 66h18M102 66h18M142 66h8M22 96h18M62 96h18M102 96h18M22 126h18M62 126h18"/>
+      <rect x="98" y="88" width="26" height="18" rx="4" stroke-opacity="0.9"/>
+    </g>
+
+    <!-- Team of people (bottom left-center) -->
+    <g stroke-opacity="0.24" stroke-width="3" transform="translate(520 770)">
+      <circle cx="60" cy="0" r="22"/>
+      <path d="M18 70c6-30 78-30 84 0"/>
+      <circle cx="150" cy="-14" r="27"/>
+      <path d="M98 70c8-40 96-40 104 0"/>
+      <circle cx="240" cy="0" r="22"/>
+      <path d="M198 70c6-30 78-30 84 0"/>
+    </g>
+
+    <!-- Checklist clipboard (bottom right) -->
+    <g stroke-opacity="0.24" stroke-width="3" transform="translate(1060 690) rotate(-6)">
+      <rect x="0" y="0" width="150" height="190" rx="16"/>
+      <rect x="45" y="-14" width="60" height="26" rx="8"/>
+      <path d="M24 52l10 10 18-20M66 54h60M24 102l10 10 18-20M66 104h60M24 152l10 10 18-20M66 154h46"/>
+    </g>
+
+    <!-- Bar chart / analytics (left middle-low) -->
+    <g stroke-opacity="0.2" stroke-width="3" transform="translate(70 760)">
+      <path d="M0 0v120h200"/>
+      <rect x="22" y="70" width="28" height="50" rx="4"/>
+      <rect x="66" y="40" width="28" height="80" rx="4"/>
+      <rect x="110" y="56" width="28" height="64" rx="4"/>
+      <rect x="154" y="16" width="28" height="104" rx="4"/>
+      <path d="M30 50l50-30 44 18 46-40" stroke-opacity="0.8"/>
+    </g>
+
+    <!-- Fingerprint / attendance scan (right middle) -->
+    <g stroke-opacity="0.2" stroke-width="2.5" transform="translate(1440 400)">
+      <path d="M-30 20c0-30 14-46 30-46s30 16 30 46"/>
+      <path d="M-18 30c0-26 6-40 18-40s18 14 18 40"/>
+      <path d="M-6 36c0-20 2-30 6-30s6 10 6 30"/>
+      <path d="M-42 6c4-36 22-52 42-52s38 16 42 52"/>
+    </g>
+
+    <!-- Connecting network lines -->
+    <g stroke-opacity="0.1" stroke-width="1.5" stroke-dasharray="4 8">
+      <path d="M460 230 C 700 300 860 200 1010 170"/>
+      <path d="M380 600 C 520 680 560 720 600 760"/>
+      <path d="M1180 240 C 1260 320 1290 420 1300 520"/>
+      <path d="M880 830 C 960 800 1010 780 1060 760"/>
+    </g>
+  </g>
+
+  <!-- Accent nodes -->
+  <g fill="#5eead4" fill-opacity="0.5">
+    <circle cx="460" cy="230" r="5"/>
+    <circle cx="1010" cy="170" r="5"/>
+    <circle cx="600" cy="760" r="4"/>
+    <circle cx="1300" cy="520" r="5"/>
+    <circle cx="1060" cy="760" r="4"/>
+    <circle cx="880" cy="830" r="4"/>
+  </g>
+</svg>

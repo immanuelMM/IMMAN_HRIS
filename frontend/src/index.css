@@ -1593,12 +1593,15 @@ table a:hover {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: var(--color-bg);
+  background: #0b2f3a url('/login-bg.svg') center / cover no-repeat;
 }
 
 .login-card {
   width: 100%;
   max-width: 380px;
+  /* Lift the card off the illustrated background. */
+  box-shadow: 0 24px 60px rgba(4, 20, 26, 0.45);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .tab-switch {
