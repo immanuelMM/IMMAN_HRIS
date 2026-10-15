@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { AdminLayout } from '../../components/AdminLayout'
 import { DepartmentLogo } from '../../components/DepartmentLogo'
 import { Icon } from '../../components/Icon'
+import { listIdCardTemplates, type SavedIdCardTemplate } from '../../api/idCardTemplates'
+import { IdTemplatePreview } from '../../components/IdTemplateLibrary'
+import { parseDesign, recolorDesign } from '../../components/idCardDesign'
 import {
   addDepartmentPosition,
   createDepartment,
@@ -10,6 +13,7 @@ import {
   deleteDepartmentLogo,
   deleteDepartmentPosition,
   listDepartments,
+  saveIdCardDesign,
   updateDepartment,
   uploadDepartmentLogo,
 } from '../../api/departments'
@@ -33,18 +37,90 @@ const ORIENTATION_OPTIONS: { value: CardOrientation; label: string }[] = [
   { value: 'vertical', label: 'Vertical' },
 ]
 
-function TemplateSelect({ value, onChange }: { value: IdCardTemplate; onChange: (v: IdCardTemplate) => void }) {
+/** A built-in style, or `saved:<id>` for a design from the shared template library. */
+type StyleChoice = IdCardTemplate | `saved:${number}`
+
+function savedTemplateFor(choice: StyleChoice, templates: SavedIdCardTemplate[]) {
+  if (!choice.startsWith('saved:')) return null
+  const id = Number(choice.slice('saved:'.length))
+  return templates.find((t) => t.id === id) ?? null
+}
+
+/**
+ * Copies a library template into a department, swapping the template's original team
+ * colors for the department's when `recolor` is on.
+ */
+async function applySavedTemplate(
+  departmentId: number,
+  template: SavedIdCardTemplate,
+  colors: { primary: string | null; secondary: string | null },
+  recolor: boolean,
+) {
+  const parsed = parseDesign(template.design)
+  if (!parsed) throw new Error('The selected template could not be read.')
+  const design = recolor
+    ? recolorDesign(parsed, { primary: template.sourceColor, secondary: template.sourceColorSecondary }, colors)
+    : parsed
+  await saveIdCardDesign(departmentId, JSON.stringify(design), design.orientation)
+}
+
+function TemplateSelect({
+  value,
+  onChange,
+  templates,
+  recolor,
+  onRecolorChange,
+  colors,
+}: {
+  value: StyleChoice
+  onChange: (v: StyleChoice) => void
+  templates: SavedIdCardTemplate[]
+  recolor: boolean
+  onRecolorChange: (v: boolean) => void
+  colors: { primary: string | null; secondary: string | null }
+}) {
+  const saved = savedTemplateFor(value, templates)
+  const preview = useMemo(() => {
+    const parsed = saved ? parseDesign(saved.design) : null
+    if (!parsed || !saved) return null
+    return recolor
+      ? recolorDesign(parsed, { primary: saved.sourceColor, secondary: saved.sourceColorSecondary }, colors)
+      : parsed
+  }, [saved, recolor, colors])
+
   return (
-    <label className="color-field">
-      ID Card Style
-      <select value={value} onChange={(e) => onChange(e.target.value as IdCardTemplate)}>
-        {TEMPLATE_OPTIONS.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="template-select">
+      <label className="color-field">
+        ID Card Style
+        <select value={value} onChange={(e) => onChange(e.target.value as StyleChoice)}>
+          <optgroup label="Built-in styles">
+            {TEMPLATE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </optgroup>
+          {templates.length > 0 && (
+            <optgroup label="Saved custom templates">
+              {templates.map((t) => (
+                <option key={t.id} value={`saved:${t.id}`}>
+                  {t.name}
+                  {t.sourceDepartmentName ? ` (from ${t.sourceDepartmentName})` : ''}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+      </label>
+      {preview && (
+        <div className="template-select-preview">
+          <IdTemplatePreview design={preview} />
+          <label className="designer-check">
+            <input type="checkbox" checked={recolor} onChange={(e) => onRecolorChange(e.target.checked)} /> Use team colors
+          </label>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -72,7 +148,9 @@ export function DepartmentsPage() {
   const [description, setDescription] = useState('')
   const [teamColor, setTeamColor] = useState(DEFAULT_COLOR)
   const [teamColorSecondary, setTeamColorSecondary] = useState<string | null>(null)
-  const [idCardTemplate, setIdCardTemplate] = useState<IdCardTemplate>('wave')
+  const [idCardTemplate, setIdCardTemplate] = useState<StyleChoice>('wave')
+  const [recolorTemplate, setRecolorTemplate] = useState(true)
+  const [savedTemplates, setSavedTemplates] = useState<SavedIdCardTemplate[]>([])
   const [cardOrientation, setCardOrientation] = useState<CardOrientation>('horizontal')
   const [creating, setCreating] = useState(false)
 
@@ -86,19 +164,29 @@ export function DepartmentsPage() {
 
   useEffect(load, [])
 
+  useEffect(() => {
+    listIdCardTemplates()
+      .then(setSavedTemplates)
+      .catch(() => setSavedTemplates([]))
+  }, [])
+
+  const newColors = useMemo(() => ({ primary: teamColor, secondary: teamColorSecondary }), [teamColor, teamColorSecondary])
+
   async function handleCreate(e: FormEvent) {
     e.preventDefault()
     setError(null)
     setCreating(true)
     try {
-      await createDepartment({
+      const saved = savedTemplateFor(idCardTemplate, savedTemplates)
+      const created = await createDepartment({
         name: name.trim(),
         description: description.trim() || null,
         teamColor,
         teamColorSecondary,
-        idCardTemplate,
-        cardOrientation,
+        idCardTemplate: saved ? 'custom' : (idCardTemplate as IdCardTemplate),
+        cardOrientation: saved ? saved.cardOrientation : cardOrientation,
       })
+      if (saved) await applySavedTemplate(created.id, saved, newColors, recolorTemplate)
       setName('')
       setDescription('')
       setTeamColor(DEFAULT_COLOR)
@@ -137,8 +225,15 @@ export function DepartmentsPage() {
           onChange={(e) => setDescription(e.target.value)}
         />
         <TeamColorPicker primary={teamColor} secondary={teamColorSecondary} onPrimaryChange={setTeamColor} onSecondaryChange={setTeamColorSecondary} />
-        <TemplateSelect value={idCardTemplate} onChange={setIdCardTemplate} />
-        <OrientationSelect value={cardOrientation} onChange={setCardOrientation} />
+        <TemplateSelect
+          value={idCardTemplate}
+          onChange={setIdCardTemplate}
+          templates={savedTemplates}
+          recolor={recolorTemplate}
+          onRecolorChange={setRecolorTemplate}
+          colors={newColors}
+        />
+        {!idCardTemplate.startsWith('saved:') && <OrientationSelect value={cardOrientation} onChange={setCardOrientation} />}
         <button type="submit" className="btn btn-primary" disabled={creating}>
           Add Department
         </button>
@@ -150,7 +245,13 @@ export function DepartmentsPage() {
       {!loading && (
         <div className="department-grid">
           {departments.map((dept) => (
-            <DepartmentCard key={dept.id} department={dept} onChanged={load} onDelete={() => handleDelete(dept.id)} />
+            <DepartmentCard
+              key={dept.id}
+              department={dept}
+              savedTemplates={savedTemplates}
+              onChanged={load}
+              onDelete={() => handleDelete(dept.id)}
+            />
           ))}
           {departments.length === 0 && <p className="resume-empty">No departments yet.</p>}
         </div>
@@ -201,10 +302,12 @@ function TeamColorPicker({
 
 function DepartmentCard({
   department,
+  savedTemplates,
   onChanged,
   onDelete,
 }: {
   department: Department
+  savedTemplates: SavedIdCardTemplate[]
   onChanged: () => void
   onDelete: () => void
 }) {
@@ -213,7 +316,9 @@ function DepartmentCard({
   const [editDescription, setEditDescription] = useState(department.description ?? '')
   const [editColor, setEditColor] = useState(department.teamColor ?? DEFAULT_COLOR)
   const [editColorSecondary, setEditColorSecondary] = useState<string | null>(department.teamColorSecondary)
-  const [editTemplate, setEditTemplate] = useState<IdCardTemplate>(department.idCardTemplate)
+  const [editTemplate, setEditTemplate] = useState<StyleChoice>(department.idCardTemplate)
+  const [editRecolor, setEditRecolor] = useState(true)
+  const editColors = useMemo(() => ({ primary: editColor, secondary: editColorSecondary }), [editColor, editColorSecondary])
   const [editOrientation, setEditOrientation] = useState<CardOrientation>(department.cardOrientation)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -238,14 +343,21 @@ function DepartmentCard({
     setSaving(true)
     setError(null)
     try {
+      const saved = savedTemplateFor(editTemplate, savedTemplates)
+      if (saved && department.idCardTemplate === 'custom' &&
+          !window.confirm(`Replace ${department.name}'s current custom ID design with "${saved.name}"?`)) {
+        setSaving(false)
+        return
+      }
       await updateDepartment(department.id, {
         name: editName.trim(),
         description: editDescription.trim() || null,
         teamColor: editColor,
         teamColorSecondary: editColorSecondary,
-        idCardTemplate: editTemplate,
-        cardOrientation: editOrientation,
+        idCardTemplate: saved ? 'custom' : (editTemplate as IdCardTemplate),
+        cardOrientation: saved ? saved.cardOrientation : editOrientation,
       })
+      if (saved) await applySavedTemplate(department.id, saved, editColors, editRecolor)
       setEditing(false)
       onChanged()
     } catch (err) {
@@ -382,8 +494,15 @@ function DepartmentCard({
             onSecondaryChange={setEditColorSecondary}
           />
           <div className="department-template-field">
-            <TemplateSelect value={editTemplate} onChange={setEditTemplate} />
-            <OrientationSelect value={editOrientation} onChange={setEditOrientation} />
+            <TemplateSelect
+              value={editTemplate}
+              onChange={setEditTemplate}
+              templates={savedTemplates}
+              recolor={editRecolor}
+              onRecolorChange={setEditRecolor}
+              colors={editColors}
+            />
+            {!editTemplate.startsWith('saved:') && <OrientationSelect value={editOrientation} onChange={setEditOrientation} />}
           </div>
         </div>
       ) : (

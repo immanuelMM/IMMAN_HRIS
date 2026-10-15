@@ -1,4 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { apiClient } from '../api/client'
 import { getIdCardDesign } from '../api/departments'
@@ -31,8 +41,23 @@ export interface CustomCardContext {
   qrError?: string | null
 }
 
+/**
+ * SVG gradient/path ids must be unique per document. Elements copied between departments
+ * keep the same element ids, so every rendered card gets its own prefix.
+ */
+const SvgIdScope = createContext('')
+
+export function SvgIdScopeProvider({ children }: { children: ReactNode }) {
+  const scope = useId().replace(/:/g, '')
+  return <SvgIdScope.Provider value={scope}>{children}</SvgIdScope.Provider>
+}
+
 /** Maps the data the classic templates use onto the custom designer's placeholders. */
-export function idCardContext(data: IdCardPersonData, token: string | null, qrError: string | null = null): CustomCardContext {
+export function idCardContext(
+  data: IdCardPersonData,
+  token: string | null,
+  qrError: string | null = null,
+): CustomCardContext {
   return {
     values: {
       fullName: data.fullName,
@@ -107,7 +132,7 @@ function starPoints(w: number, h: number): string {
 
 function ShapeView({ el }: { el: ShapeElement }) {
   const { w, h } = el
-  const gradId = `g-${el.id}`
+  const gradId = `g-${useContext(SvgIdScope)}-${el.id}`
   const fill = el.fill.color2 ? `url(#${gradId})` : el.fill.color
   const common = {
     fill,
@@ -140,7 +165,9 @@ function ShapeView({ el }: { el: ShapeElement }) {
       body = <polygon points={starPoints(w, h)} {...common} />
       break
     case 'wave':
-      body = <path d={`M0,0 H${w} V${h * 0.7} C${w * 0.72},${h * 0.3} ${w * 0.3},${h * 1.15} 0,${h * 0.62} Z`} {...common} />
+      body = (
+        <path d={`M0,0 H${w} V${h * 0.7} C${w * 0.72},${h * 0.3} ${w * 0.3},${h * 1.15} 0,${h * 0.62} Z`} {...common} />
+      )
       break
     case 'arch':
       body = <path d={`M0,0 H${w} V${h * 0.55} Q${w / 2},${h * 1.45} 0,${h * 0.55} Z`} {...common} />
@@ -160,7 +187,10 @@ function ShapeView({ el }: { el: ShapeElement }) {
       )
   }
 
-  const flip = el.flipX || el.flipY ? `translate(${el.flipX ? w : 0} ${el.flipY ? h : 0}) scale(${el.flipX ? -1 : 1} ${el.flipY ? -1 : 1})` : undefined
+  const flip =
+    el.flipX || el.flipY
+      ? `translate(${el.flipX ? w : 0} ${el.flipY ? h : 0}) scale(${el.flipX ? -1 : 1} ${el.flipY ? -1 : 1})`
+      : undefined
 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block', overflow: 'visible' }}>
@@ -206,6 +236,7 @@ function TextView({ el, values }: { el: TextElement; values: DesignFieldValues }
   let text = fillTemplate(el.text, values)
   if (el.uppercase) text = text.toUpperCase()
   const fontSize = useAutoFitSize(el, text)
+  const scope = useContext(SvgIdScope)
 
   const shadowColor = /^#[0-9a-f]{6}$/i.test(el.shadowColor) ? `${el.shadowColor}66` : el.shadowColor
   const shadow = el.shadow ? `0 1px 3px ${shadowColor}` : undefined
@@ -217,7 +248,7 @@ function TextView({ el, values }: { el: TextElement; values: DesignFieldValues }
     const baseY = el.h / 2 + fontSize * 0.35 + s / 2
     const anchor = el.align === 'left' ? 'start' : el.align === 'right' ? 'end' : 'middle'
     const offset = el.align === 'left' ? '0%' : el.align === 'right' ? '100%' : '50%'
-    const pathId = `p-${el.id}`
+    const pathId = `p-${scope}-${el.id}`
     return (
       <svg width={el.w} height={el.h} viewBox={`0 0 ${el.w} ${el.h}`} style={{ display: 'block', overflow: 'visible' }}>
         <path id={pathId} d={`M0,${baseY} Q${el.w / 2},${baseY - 2 * s} ${el.w},${baseY}`} fill="none" />
@@ -284,7 +315,7 @@ function ImageView({ el, ctx }: { el: ImageElement; ctx: CustomCardContext }) {
   const apiUrl = el.type === 'photo' ? ctx.photoUrl : el.type === 'logo' ? ctx.logoUrl : ''
   const enabled = el.type === 'photo' ? ctx.hasPhoto : el.type === 'logo' ? ctx.hasLogo : false
   const fetched = useAuthImage(apiUrl, enabled)
-  const src = el.type === 'image' ? el.src ?? null : fetched
+  const src = el.type === 'image' ? (el.src ?? null) : fetched
 
   const frame: CSSProperties = {
     width: '100%',
@@ -301,21 +332,46 @@ function ImageView({ el, ctx }: { el: ImageElement; ctx: CustomCardContext }) {
   if (src) {
     return (
       <div style={frame}>
-        <img src={src} alt="" draggable={false} style={{ width: '100%', height: '100%', objectFit: el.fit, display: 'block' }} />
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: el.fit,
+            display: 'block',
+          }}
+        />
       </div>
     )
   }
 
   if (el.type === 'photo') {
     return (
-      <div style={{ ...frame, background: '#cbd5e1', color: '#475569', fontWeight: 700, fontSize: Math.min(el.w, el.h) * 0.32 }}>
+      <div
+        style={{
+          ...frame,
+          background: '#cbd5e1',
+          color: '#475569',
+          fontWeight: 700,
+          fontSize: Math.min(el.w, el.h) * 0.32,
+        }}
+      >
         {getInitials(ctx.values.fullName)}
       </div>
     )
   }
 
   return (
-    <div style={{ ...frame, background: 'rgba(148,163,184,0.25)', color: '#64748b', fontSize: Math.max(8, Math.min(el.w, el.h) * 0.22) }}>
+    <div
+      style={{
+        ...frame,
+        background: 'rgba(148,163,184,0.25)',
+        color: '#64748b',
+        fontSize: Math.max(8, Math.min(el.w, el.h) * 0.22),
+      }}
+    >
       {el.type === 'logo' ? 'LOGO' : 'IMAGE'}
     </div>
   )
@@ -374,7 +430,15 @@ export function elementBoxStyle(el: DesignElement): CSSProperties {
 }
 
 /** Static (non-interactive) rendering of one side of a custom card, scaled to fit its parent's width. */
-export function CustomCardSide({ design, side, ctx }: { design: IdCardDesign; side: CardSide; ctx: CustomCardContext }) {
+export function CustomCardSide({
+  design,
+  side,
+  ctx,
+}: {
+  design: IdCardDesign
+  side: CardSide
+  ctx: CustomCardContext
+}) {
   const { w, h } = CARD_SIZE[design.orientation]
   const sideDesign = design[side]
   const hostRef = useRef<HTMLDivElement>(null)
@@ -392,20 +456,27 @@ export function CustomCardSide({ design, side, ctx }: { design: IdCardDesign; si
   }, [w])
 
   return (
-    <div ref={hostRef} className="custom-card-host">
-      <div
-        className="custom-card-surface"
-        style={{ width: w, height: h, background: fillToCss(sideDesign.background), transform: `scale(${scale})` }}
-      >
-        {sideDesign.elements
-          .filter((el) => !el.hidden)
-          .map((el) => (
-            <div key={el.id} style={elementBoxStyle(el)}>
-              <ElementView el={el} ctx={ctx} />
-            </div>
-          ))}
+    <SvgIdScopeProvider>
+      <div ref={hostRef} className="custom-card-host">
+        <div
+          className="custom-card-surface"
+          style={{
+            width: w,
+            height: h,
+            background: fillToCss(sideDesign.background),
+            transform: `scale(${scale})`,
+          }}
+        >
+          {sideDesign.elements
+            .filter((el) => !el.hidden)
+            .map((el) => (
+              <div key={el.id} style={elementBoxStyle(el)}>
+                <ElementView el={el} ctx={ctx} />
+              </div>
+            ))}
+        </div>
       </div>
-    </div>
+    </SvgIdScopeProvider>
   )
 }
 
@@ -418,7 +489,13 @@ export function useDepartmentDesigns(departmentIds: number[]): Record<number, Id
     if (!key) return
     let cancelled = false
     const ids = key.split(',').map(Number)
-    Promise.all(ids.map((id) => getIdCardDesign(id).then((r) => parseDesign(r.design)).catch(() => null))).then((results) => {
+    Promise.all(
+      ids.map((id) =>
+        getIdCardDesign(id)
+          .then((r) => parseDesign(r.design))
+          .catch(() => null),
+      ),
+    ).then((results) => {
       if (cancelled) return
       const map: Record<number, IdCardDesign | null> = {}
       ids.forEach((id, i) => {

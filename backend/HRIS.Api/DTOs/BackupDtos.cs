@@ -84,6 +84,19 @@ public record BackupData(
     DateTime ExportedAtUtc,
     List<BackupDepartmentDto> Departments,
     List<BackupEmployeeDto> Employees,
-    List<BackupAttendanceRecordDto> AttendanceRecords);
+    List<BackupAttendanceRecordDto> AttendanceRecords,
+    // Null in backups made before the template library existed; import leaves the library untouched then.
+    List<BackupIdCardTemplateDto>? IdCardTemplates = null);
+
+public record BackupIdCardTemplateDto(
+    int Id,
+    string Name,
+    string Design,
+    string CardOrientation,
+    string? SourceColor,
+    string? SourceColorSecondary,
+    int? SourceDepartmentId,
+    string? SourceDepartmentName,
+    DateTime CreatedAtUtc);
 
 public record ImportSummary(string Message, int Departments, int Employees, int AttendanceRecords);

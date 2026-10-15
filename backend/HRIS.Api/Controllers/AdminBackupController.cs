@@ -97,7 +97,13 @@ public class AdminBackupController : ControllerBase
             .Select(a => new BackupAttendanceRecordDto(a.Id, a.EmployeeId, a.Date, a.TimeIn, a.TimeOut))
             .ToListAsync();
 
-        var backup = new BackupData(DateTime.UtcNow, departments, backupEmployees, attendance);
+        var idCardTemplates = await _db.SavedIdCardTemplates
+            .Select(t => new BackupIdCardTemplateDto(
+                t.Id, t.Name, t.Design, t.CardOrientation, t.SourceColor, t.SourceColorSecondary,
+                t.SourceDepartmentId, t.SourceDepartmentName, t.CreatedAtUtc))
+            .ToListAsync();
+
+        var backup = new BackupData(DateTime.UtcNow, departments, backupEmployees, attendance, idCardTemplates);
         var json = JsonSerializer.Serialize(backup, JsonOptions);
         var bytes = Encoding.UTF8.GetBytes(json);
 
@@ -272,12 +278,33 @@ public class AdminBackupController : ControllerBase
         }
         await _db.SaveChangesAsync();
 
+        if (backup.IdCardTemplates is not null)
+        {
+            await _db.Database.ExecuteSqlRawAsync("DELETE FROM \"SavedIdCardTemplates\"");
+            foreach (var t in backup.IdCardTemplates)
+            {
+                _db.SavedIdCardTemplates.Add(new SavedIdCardTemplate
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Design = t.Design,
+                    CardOrientation = t.CardOrientation,
+                    SourceColor = t.SourceColor,
+                    SourceColorSecondary = t.SourceColorSecondary,
+                    SourceDepartmentId = t.SourceDepartmentId,
+                    SourceDepartmentName = t.SourceDepartmentName,
+                    CreatedAtUtc = t.CreatedAtUtc,
+                });
+            }
+            await _db.SaveChangesAsync();
+        }
+
         // We just inserted rows with explicit Ids (to preserve relationships from the
         // backup), bypassing each table's auto-increment sequence. Postgres doesn't
         // notice this on its own — its sequences only advance via nextval(), so without
         // this they'd stay wherever they were and the next normal insert (e.g. creating
         // a new employee) would collide with an Id that already exists.
-        foreach (var table in new[] { "Departments", "Employees", "EducationRecords", "EmploymentHistories", "DepartmentHistories", "AttendanceRecords", "DepartmentPositions" })
+        foreach (var table in new[] { "Departments", "Employees", "EducationRecords", "EmploymentHistories", "DepartmentHistories", "AttendanceRecords", "DepartmentPositions", "SavedIdCardTemplates" })
         {
             // `table` only ever comes from the fixed literal array above — not user input.
 #pragma warning disable EF1002

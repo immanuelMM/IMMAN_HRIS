@@ -423,6 +423,46 @@ namespace HRIS.Api.Migrations
                     b.ToTable("NotificationSettings");
                 });
 
+            modelBuilder.Entity("HRIS.Api.Models.SavedIdCardTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CardOrientation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Design")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceColor")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceColorSecondary")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("SourceDepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceDepartmentName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SavedIdCardTemplates");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")

@@ -20,6 +20,7 @@ public class HrisDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
     public DbSet<NotificationSettings> NotificationSettings => Set<NotificationSettings>();
     public DbSet<DepartmentPosition> DepartmentPositions => Set<DepartmentPosition>();
+    public DbSet<SavedIdCardTemplate> SavedIdCardTemplates => Set<SavedIdCardTemplate>();
 
     // Data Protection keys must live in Postgres, not the container's local
     // disk — Render's filesystem is ephemeral, so keys stored on disk would

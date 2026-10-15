@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AdminLayout } from '../../components/AdminLayout'
-import { ElementView, elementBoxStyle, type CustomCardContext } from '../../components/CustomIdCard'
+import { ElementView, SvgIdScopeProvider, elementBoxStyle, type CustomCardContext } from '../../components/CustomIdCard'
 import {
   CARD_SIZE,
   FONT_OPTIONS,
@@ -15,6 +15,7 @@ import {
   fillToCss,
   newId,
   parseDesign,
+  recolorDesign,
   type CardSide,
   type DesignElement,
   type DesignFieldValues,
@@ -27,6 +28,14 @@ import {
   type TextElement,
 } from '../../components/idCardDesign'
 import { getIdCardDesign, listDepartments, saveIdCardDesign } from '../../api/departments'
+import {
+  createIdCardTemplate,
+  deleteIdCardTemplate,
+  listIdCardTemplates,
+  renameIdCardTemplate,
+  type SavedIdCardTemplate,
+} from '../../api/idCardTemplates'
+import { SaveTemplateDialog, TemplateLibraryPanel } from '../../components/IdTemplateLibrary'
 import type { CardOrientation, Department } from '../../api/types'
 import { extractErrorMessage } from '../../api/client'
 import { ADMIN_NAV } from './adminNav'
@@ -136,6 +145,10 @@ export function IdCardDesignerPage() {
   const [guides, setGuides] = useState<Guides>({ v: [], h: [] })
   const [mobileTab, setMobileTab] = useState<MobileTab>('add')
   const isMobile = useIsMobile()
+  const [templates, setTemplates] = useState<SavedIdCardTemplate[]>([])
+  const [savingTemplate, setSavingTemplate] = useState(false)
+  const [recolorTemplates, setRecolorTemplates] = useState(true)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const designRef = useRef<IdCardDesign | null>(null)
   const past = useRef<IdCardDesign[]>([])
@@ -151,6 +164,9 @@ export function IdCardDesignerPage() {
 
   useEffect(() => {
     if (!departmentId) return
+    listIdCardTemplates()
+      .then(setTemplates)
+      .catch(() => setTemplates([]))
     Promise.all([listDepartments(), getIdCardDesign(departmentId)])
       .then(([depts, res]) => {
         const dept = depts.find((d) => d.id === departmentId) ?? null
@@ -382,6 +398,60 @@ export function IdCardDesignerPage() {
       addElement(el)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add image.')
+    }
+  }
+
+  // ---------- Template library ----------
+
+  async function handleSaveTemplate(name: string) {
+    if (!designRef.current) return
+    try {
+      const created = await createIdCardTemplate(name, JSON.stringify(designRef.current), designRef.current.orientation, departmentId)
+      setTemplates((list) => [...list, created].sort((a, b) => a.name.localeCompare(b.name)))
+      setSavingTemplate(false)
+      setNotice(`Saved “${created.name}” to the template library. Other departments can now pick it as their ID Card Style.`)
+    } catch (err) {
+      throw new Error(extractErrorMessage(err, 'Failed to save template.'))
+    }
+  }
+
+  function applyTemplate(t: SavedIdCardTemplate) {
+    const parsed = parseDesign(t.design)
+    if (!parsed) {
+      setError('That template could not be read.')
+      return
+    }
+    if (!window.confirm(`Replace this department’s design (front and back) with “${t.name}”? You can undo this.`)) return
+    const next = recolorTemplates
+      ? recolorDesign(
+          parsed,
+          { primary: t.sourceColor, secondary: t.sourceColorSecondary },
+          { primary: department?.teamColor ?? null, secondary: department?.teamColorSecondary ?? null },
+        )
+      : parsed
+    commit(next)
+    setSelectedId(null)
+    setNotice(`Applied “${t.name}”. Click Save Design to keep it for this department.`)
+  }
+
+  async function handleRenameTemplate(t: SavedIdCardTemplate) {
+    const name = window.prompt('Rename template', t.name)?.trim()
+    if (!name || name === t.name) return
+    try {
+      await renameIdCardTemplate(t.id, name)
+      setTemplates((list) => list.map((x) => (x.id === t.id ? { ...x, name } : x)).sort((a, b) => a.name.localeCompare(b.name)))
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Failed to rename template.'))
+    }
+  }
+
+  async function handleDeleteTemplate(t: SavedIdCardTemplate) {
+    if (!window.confirm(`Delete the template “${t.name}”? Departments already using it keep their design.`)) return
+    try {
+      await deleteIdCardTemplate(t.id)
+      setTemplates((list) => list.filter((x) => x.id !== t.id))
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Failed to delete template.'))
     }
   }
 
@@ -665,12 +735,30 @@ export function IdCardDesignerPage() {
           <Link to="/admin/departments" className="btn btn-ghost">
             Back
           </Link>
+          <button type="button" className="btn btn-ghost" onClick={() => setSavingTemplate(true)}>
+            Save as Template
+          </button>
           <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
             {saving ? 'Saving...' : dirty ? 'Save Design' : 'Saved'}
           </button>
         </div>
       </div>
       {error && <p className="form-error">{error}</p>}
+      {notice && (
+        <p className="designer-notice">
+          {notice}
+          <button type="button" aria-label="Dismiss" onClick={() => setNotice(null)}>
+            ×
+          </button>
+        </p>
+      )}
+      {savingTemplate && (
+        <SaveTemplateDialog
+          defaultName={`${department?.name ?? 'Custom'} ID`}
+          onSave={handleSaveTemplate}
+          onClose={() => setSavingTemplate(false)}
+        />
+      )}
       {savedAt && !dirty && (
         <p className="designer-hint">Saved {savedAt.toLocaleTimeString()} · this department now uses the custom ID design.</p>
       )}
@@ -776,6 +864,7 @@ export function IdCardDesignerPage() {
                   background: fillToCss(design[side].background),
                 }}
               >
+                <SvgIdScopeProvider>
                 <div className="designer-clip" style={{ borderRadius: design.cornerRadius }}>
                   {elements.map((el) =>
                     el.hidden ? null : (
@@ -801,6 +890,7 @@ export function IdCardDesignerPage() {
                     ),
                   )}
                 </div>
+                </SvgIdScopeProvider>
 
                 {/* Selection overlay is drawn outside the clip so handles stay visible at the card edges. */}
                 {selected && !selected.hidden && editingId !== selected.id && (
@@ -907,6 +997,19 @@ export function IdCardDesignerPage() {
                 onReset={resetToStarter}
                 onCopyFrontToBack={copyFrontToBack}
               />
+            )}
+            {!selected && (
+              <>
+                <h4 className="designer-subtitle">Template Library</h4>
+                <TemplateLibraryPanel
+                  templates={templates}
+                  recolor={recolorTemplates}
+                  onRecolorChange={setRecolorTemplates}
+                  onApply={applyTemplate}
+                  onRename={handleRenameTemplate}
+                  onDelete={handleDeleteTemplate}
+                />
+              </>
             )}
             <input
               ref={replaceImageRef}

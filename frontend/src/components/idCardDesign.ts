@@ -331,3 +331,28 @@ export function parseDesign(raw: string | null | undefined): IdCardDesign | null
 export function fillToCss(fill: Fill): string {
   return fill.color2 ? `linear-gradient(${fill.angle ?? 135}deg, ${fill.color}, ${fill.color2})` : fill.color
 }
+
+/**
+ * Swap one department's team colors for another's throughout a design, so a shared
+ * template picks up the brand of the department adopting it. Other colors are kept.
+ */
+export function recolorDesign(
+  design: IdCardDesign,
+  from: { primary: string | null; secondary: string | null },
+  to: { primary: string | null; secondary: string | null },
+): IdCardDesign {
+  const map = new Map<string, string>()
+  if (from.primary && to.primary) map.set(from.primary.toLowerCase(), to.primary)
+  if (from.secondary && (to.secondary ?? to.primary)) map.set(from.secondary.toLowerCase(), (to.secondary ?? to.primary) as string)
+  if (map.size === 0) return design
+
+  const walk = (value: unknown): unknown => {
+    if (typeof value === 'string') return map.get(value.toLowerCase()) ?? value
+    if (Array.isArray(value)) return value.map(walk)
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, k === 'src' || k === 'text' ? v : walk(v)]))
+    }
+    return value
+  }
+  return walk(design) as IdCardDesign
+}
