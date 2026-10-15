@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { IdCardBackInner, IdCardFrontInner, type IdCardPersonData } from './IdCardFace'
+import { CustomCardSide, idCardContext, useDepartmentDesigns } from './CustomIdCard'
 import { Icon } from './Icon'
 import { getMyQrToken } from '../api/attendance'
 import { extractErrorMessage } from '../api/client'
@@ -18,8 +19,14 @@ export function IdCardModal({ profile, onClose }: { profile: Profile; onClose: (
 
   const currentRole = profile.departmentHistories.find((d) => !d.endDate)?.position
   const employeeNo = `EMP-${String(profile.id).padStart(5, '0')}`
-  const template = profile.currentDepartmentIdCardTemplate
-  const orientationClass = profile.currentDepartmentCardOrientation === 'vertical' ? 'id-card-vertical' : ''
+  const designs = useDepartmentDesigns(
+    profile.currentDepartmentIdCardTemplate === 'custom' && profile.currentDepartmentId ? [profile.currentDepartmentId] : [],
+  )
+  const customDesign = profile.currentDepartmentId ? designs[profile.currentDepartmentId] ?? null : null
+  // A department switched to "custom" before anything was saved falls back to the default style.
+  const template = profile.currentDepartmentIdCardTemplate === 'custom' && !customDesign ? 'wave' : profile.currentDepartmentIdCardTemplate
+  const orientation = customDesign?.orientation ?? profile.currentDepartmentCardOrientation
+  const orientationClass = orientation === 'vertical' ? 'id-card-vertical' : ''
   const brandStyle = profile.currentDepartmentColor
     ? ({
         '--accent-teal': profile.currentDepartmentColor,
@@ -56,13 +63,26 @@ export function IdCardModal({ profile, onClose }: { profile: Profile; onClose: (
         <div className="modal-body id-card-modal-body">
           <div className={`id-card-scene ${orientationClass}`} style={brandStyle}>
             <div className={`id-card-flip ${flipped ? 'flipped' : ''}`}>
-              <div className={`id-card-face id-card-front id-card-template-${template}`}>
-                <IdCardFrontInner template={template} data={data} />
-              </div>
+              {customDesign ? (
+                <>
+                  <div className="id-card-face id-card-front id-card-template-custom" style={{ borderRadius: customDesign.cornerRadius }}>
+                    <CustomCardSide design={customDesign} side="front" ctx={idCardContext(data, token, error)} />
+                  </div>
+                  <div className="id-card-face id-card-back id-card-template-custom" style={{ borderRadius: customDesign.cornerRadius }}>
+                    <CustomCardSide design={customDesign} side="back" ctx={idCardContext(data, token, error)} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={`id-card-face id-card-front id-card-template-${template}`}>
+                    <IdCardFrontInner template={template} data={data} />
+                  </div>
 
-              <div className={`id-card-face id-card-back id-card-template-${template}`}>
-                <IdCardBackInner template={template} data={data} token={token} error={error} />
-              </div>
+                  <div className={`id-card-face id-card-back id-card-template-${template}`}>
+                    <IdCardBackInner template={template} data={data} token={token} error={error} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

@@ -45,3 +45,17 @@ export function addDepartmentPosition(id: number, title: string) {
 export function deleteDepartmentPosition(id: number, positionId: number) {
   return apiClient.delete(`/departments/${id}/positions/${positionId}`)
 }
+
+export interface IdCardDesignResponse {
+  /** JSON-encoded IdCardDesign, or null when the department has never been designed. */
+  design: string | null
+  cardOrientation: CardOrientation
+}
+
+export function getIdCardDesign(id: number) {
+  return apiClient.get<IdCardDesignResponse>(`/departments/${id}/id-card-design`).then((r) => r.data)
+}
+
+export function saveIdCardDesign(id: number, design: string, cardOrientation: CardOrientation) {
+  return apiClient.put(`/departments/${id}/id-card-design`, { design, cardOrientation })
+}

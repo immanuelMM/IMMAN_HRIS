@@ -45,7 +45,8 @@ public class AdminBackupController : ControllerBase
                 d.CardOrientation,
                 d.LogoData,
                 d.LogoContentType,
-                d.Positions.Select(p => new BackupDepartmentPositionDto(p.Id, p.Title)).ToList()))
+                d.Positions.Select(p => new BackupDepartmentPositionDto(p.Id, p.Title)).ToList(),
+                d.IdCardDesign))
             .ToListAsync();
 
         var employees = await _db.Employees
@@ -155,6 +156,7 @@ public class AdminBackupController : ControllerBase
                 CardOrientation = d.CardOrientation,
                 LogoData = d.LogoData,
                 LogoContentType = d.LogoContentType,
+                IdCardDesign = d.IdCardDesign,
             });
         }
         await _db.SaveChangesAsync();

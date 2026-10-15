@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { AdminLayout } from '../../components/AdminLayout'
 import { DepartmentLogo } from '../../components/DepartmentLogo'
 import { Icon } from '../../components/Icon'
@@ -24,6 +25,7 @@ const TEMPLATE_OPTIONS: { value: IdCardTemplate; label: string }[] = [
   { value: 'arch', label: 'Arch Classic' },
   { value: 'chevron', label: 'Diagonal Chevron' },
   { value: 'stripe', label: 'Diagonal Stripe' },
+  { value: 'custom', label: 'Custom (ID Designer)' },
 ]
 
 const ORIENTATION_OPTIONS: { value: CardOrientation; label: string }[] = [
@@ -390,6 +392,12 @@ function DepartmentCard({
           {' · '}
           {ORIENTATION_OPTIONS.find((o) => o.value === department.cardOrientation)?.label}
         </p>
+      )}
+
+      {!editing && (
+        <Link to={`/admin/departments/${department.id}/id-designer`} className="btn btn-ghost btn-small department-design-btn">
+          <Icon name="id-card" size={14} /> {department.idCardTemplate === 'custom' ? 'Edit Custom ID Design' : 'Design Custom ID'}
+        </Link>
       )}
 
       <div className="department-card-section">

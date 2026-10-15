@@ -17,3 +17,5 @@ public record DepartmentDto(
 public record CreateDepartmentRequest(string Name, string? Description, string? TeamColor, string? TeamColorSecondary, string? IdCardTemplate, string? CardOrientation);
 public record UpdateDepartmentRequest(string Name, string? Description, string? TeamColor, string? TeamColorSecondary, string? IdCardTemplate, string? CardOrientation);
 public record AddDepartmentPositionRequest(string Title);
+public record IdCardDesignDto(string? Design, string CardOrientation);
+public record SaveIdCardDesignRequest(string Design, string? CardOrientation);

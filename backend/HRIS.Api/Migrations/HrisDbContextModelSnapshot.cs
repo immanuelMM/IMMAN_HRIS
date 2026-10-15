@@ -88,6 +88,9 @@ namespace HRIS.Api.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("IdCardDesign")
+                        .HasColumnType("text");
+
                     b.Property<string>("IdCardTemplate")
                         .IsRequired()
                         .HasColumnType("text");

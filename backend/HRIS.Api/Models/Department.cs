@@ -11,11 +11,14 @@ public class Department
     public byte[]? LogoData { get; set; }
     public string? LogoContentType { get; set; }
 
-    /// <summary>One of: "wave", "arch", "chevron", "stripe". See IdCardModal/PrintIdCardsPage on the frontend.</summary>
+    /// <summary>One of: "wave", "arch", "chevron", "stripe", "custom". See IdCardModal/PrintIdCardsPage on the frontend.</summary>
     public string IdCardTemplate { get; set; } = "wave";
 
     /// <summary>One of: "horizontal", "vertical".</summary>
     public string CardOrientation { get; set; } = "horizontal";
+
+    /// <summary>JSON layout built in the ID card designer; used when IdCardTemplate is "custom".</summary>
+    public string? IdCardDesign { get; set; }
 
     public ICollection<Employee> Employees { get; set; } = new List<Employee>();
     public ICollection<DepartmentHistory> DepartmentHistories { get; set; } = new List<DepartmentHistory>();

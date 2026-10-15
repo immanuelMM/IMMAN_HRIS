@@ -75,7 +75,8 @@ public record BackupDepartmentDto(
     string CardOrientation,
     byte[]? LogoData,
     string? LogoContentType,
-    List<BackupDepartmentPositionDto> Positions);
+    List<BackupDepartmentPositionDto> Positions,
+    string? IdCardDesign = null);
 
 public record BackupAttendanceRecordDto(int Id, int EmployeeId, DateOnly Date, DateTime? TimeIn, DateTime? TimeOut);
 

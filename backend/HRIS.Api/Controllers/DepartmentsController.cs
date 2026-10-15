@@ -19,7 +19,7 @@ public class DepartmentsController : ControllerBase
         _db = db;
     }
 
-    private static readonly HashSet<string> ValidTemplates = new(StringComparer.OrdinalIgnoreCase) { "wave", "arch", "chevron", "stripe" };
+    private static readonly HashSet<string> ValidTemplates = new(StringComparer.OrdinalIgnoreCase) { "wave", "arch", "chevron", "stripe", "custom" };
     private static readonly HashSet<string> ValidOrientations = new(StringComparer.OrdinalIgnoreCase) { "horizontal", "vertical" };
 
     private static string NormalizeTemplate(string? template) =>
@@ -175,6 +175,48 @@ public class DepartmentsController : ControllerBase
         department.LogoContentType = null;
         await _db.SaveChangesAsync();
 
+        return NoContent();
+    }
+
+    // Any signed-in user may read a design: employees need their own department's layout to render their ID.
+    [HttpGet("{id:int}/id-card-design")]
+    public async Task<ActionResult<IdCardDesignDto>> GetIdCardDesign(int id)
+    {
+        var department = await _db.Departments.FindAsync(id);
+        if (department is null) return NotFound();
+
+        return Ok(new IdCardDesignDto(department.IdCardDesign, department.CardOrientation));
+    }
+
+    [HttpPut("{id:int}/id-card-design")]
+    [Authorize(Roles = "Admin")]
+    [RequestSizeLimit(10_000_000)]
+    public async Task<IActionResult> SaveIdCardDesign(int id, SaveIdCardDesignRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Design))
+        {
+            return BadRequest(new { message = "Design is required." });
+        }
+
+        try
+        {
+            using var _ = System.Text.Json.JsonDocument.Parse(request.Design);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return BadRequest(new { message = "Design must be valid JSON." });
+        }
+
+        var department = await _db.Departments.FindAsync(id);
+        if (department is null) return NotFound();
+
+        department.IdCardDesign = request.Design;
+        department.IdCardTemplate = "custom";
+        if (request.CardOrientation is not null)
+        {
+            department.CardOrientation = NormalizeOrientation(request.CardOrientation);
+        }
+        await _db.SaveChangesAsync();
         return NoContent();
     }
 

@@ -1,6 +1,6 @@
 export type Role = 'Admin' | 'Employee'
 
-export type IdCardTemplate = 'wave' | 'arch' | 'chevron' | 'stripe'
+export type IdCardTemplate = 'wave' | 'arch' | 'chevron' | 'stripe' | 'custom'
 export type CardOrientation = 'horizontal' | 'vertical'
 
 export type Gender = 'Male' | 'Female' | 'Other'

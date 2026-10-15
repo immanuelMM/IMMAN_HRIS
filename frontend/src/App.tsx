@@ -8,6 +8,7 @@ import { EmployeeFormPage } from './pages/admin/EmployeeFormPage'
 import { EmployeeDetailPage } from './pages/admin/EmployeeDetailPage'
 import { PrintIdCardsPage } from './pages/admin/PrintIdCardsPage'
 import { DepartmentsPage } from './pages/admin/DepartmentsPage'
+import { IdCardDesignerPage } from './pages/admin/IdCardDesignerPage'
 import { AttendanceMonitoringPage } from './pages/admin/AttendanceMonitoringPage'
 import { ScanAttendancePage } from './pages/admin/ScanAttendancePage'
 import { SettingsPage } from './pages/admin/SettingsPage'
@@ -80,6 +81,14 @@ export default function App() {
           element={
             <ProtectedRoute role="Admin">
               <DepartmentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/departments/:id/id-designer"
+          element={
+            <ProtectedRoute role="Admin">
+              <IdCardDesignerPage />
             </ProtectedRoute>
           }
         />
